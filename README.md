@@ -1,0 +1,2 @@
+# Resistance
+GPT Plays Resistance
