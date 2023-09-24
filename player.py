@@ -2,23 +2,36 @@
 import tkinter as tk
 import random
 import openai
+from constants import *
+
 
 class Player:
-    def __init__(self, name, role):
+    def __init__(self, name, role, fellow_spies=None):
         self.name = name
         self.role = role
+        self.fellow_spies = fellow_spies if fellow_spies else []
 
-    def propose_team(self, players, mission_size):
-        # This method will randomly select players for the team.
-        # Later on, this can be replaced by GPT-3 generated teams.
-        return random.sample(players, mission_size)
+    def role_context(self):
 
-    def propose_team_with_reasoning(self, players, mission_size):
+        if self.role == 'spy':
+            return f"You are {self.name}, you are a spy. Other spies: {self.fellow_spies} "
+        return f"You are {self.name}, and in the resistance."
+    
+
+
+
+
+    def propose_team(self, players, mission_size, history):
         # Randomly selects players for the team.
-        proposed_team = self.propose_team(players, mission_size)
-        
-        # Call GPT-3 for reasoning
-        # reasoning = interact_with_gpt3(f"Player {self.name} with role {self.role} is proposing a team. What's their reasoning?")
+
+        prompt = (INITIAL_PROMPT + self.role_context() + HISTORY_PROMPT + ",".join(history) + "\n"
+             + LEADER_PROMPT + "Mission size:" + str(mission_size) + FORMAT_PROMPT 
+            + TEAM_FIELD + INTERNAL_DIALOGUE_FIELD + EXTERNAL_DIALOGUE_FIELD + CONCISE_PROMPT
+        )
+        print(prompt)      
+
+        proposed_team = random.sample(players, mission_size)    
+
         reasoning = "tbd." # Placeholder
         
         return proposed_team, reasoning
@@ -59,13 +72,14 @@ class Player:
         return response
         
 
-    def interact_with_gpt3(self, messages, functions=[]):
+    def interact_with_gpt3(self, prompt):
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo-0613",
-            messages=messages,
-            functions=functions,
+            model="gpt-3.5-turbo-instruct",
+            messages=prompt,
             function_call="auto",
         )
+        input("Press Enter to continue...")
+        print(response)
         return response
 
 
@@ -83,7 +97,10 @@ ie - remind the agent what they had in mind during earlier rounds...
 
 gpt-3.5-turbo-instruct?
 
+I wonder if i can force them to summarize...   *compression
 
+
+GPT 3 isnt smart enough not to send 2 spies, but GPT4 is
 """
 
 
