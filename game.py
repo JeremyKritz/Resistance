@@ -89,7 +89,7 @@ class Game:
     def open_discussion(self, proposed_team):
         accusations = {}
         for player in self.players:
-            opinion, specific_accusation_or_support = player.open_discussion(proposed_team)
+            opinion, specific_accusation_or_support = player.open_discussion(proposed_team, self.history)
             self.add_to_history(f"{player.name} says: {opinion}")
             print(f"{player.name} says: {opinion}")
             #self.pause()

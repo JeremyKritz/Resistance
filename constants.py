@@ -11,7 +11,7 @@ INITIAL_PROMPT = "You're playing the card game 'The Resistance'."
 HISTORY_PROMPT = " Game history: \n"
 
 LEADER_PROMPT = "Propose a team, explain why."
-DISCUSSION_PROMPT = "Prior to voting, share thoughts on proposed team." #Proposed team is in history...
+DISCUSSION_PROMPT = "Share thoughts on proposed team." #Proposed team is in history...
 VOTE_PROMPT = "Vote on proposed team."
 MISSION_PROMPT = "You are a spy on the mission. Vote to pass or fail."
 

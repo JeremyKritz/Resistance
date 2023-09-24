@@ -3,7 +3,8 @@ import tkinter as tk
 import random
 import openai
 from constants import *
-
+import json
+openai.api_key = '' #HIDE lol
 
 class Player:
     def __init__(self, name, role, fellow_spies=None):
@@ -26,35 +27,42 @@ class Player:
 
         prompt = (INITIAL_PROMPT + self.role_context() + HISTORY_PROMPT + ",".join(history) + "\n"
              + LEADER_PROMPT + "Mission size:" + str(mission_size) + FORMAT_PROMPT 
-            + TEAM_FIELD + INTERNAL_DIALOGUE_FIELD + EXTERNAL_DIALOGUE_FIELD + CONCISE_PROMPT
+            + TEAM_FIELD  + EXTERNAL_DIALOGUE_FIELD 
         )
-        print(prompt)      
-
-        proposed_team = random.sample(players, mission_size)    
-
-        reasoning = "tbd." # Placeholder
-        
-        return proposed_team, reasoning
-
-    def vote_on_team(self, proposed_team):
-        # This method will randomly return 'approve' or 'reject'
-        # Later on, this can be replaced by GPT-3 generated opinions.
-        return random.choice(['approve', 'reject'])
-
-    def execute_mission(self):
-        # For spies: random chance to sabotage
-        # For resistance: always return 'success'
-        # This can be enhanced using GPT-3 to make more strategic decisions.
         if self.role == 'spy':
-            # decision = interact_with_gpt3(f"Player {self.name} with role {self.role} is on the mission. Do they sabotage or let it succeed?")
-            decision = random.choice(['success', 'sabotage']) # Placeholder
-        else:
-            decision = 'success'
-        return decision
+            prompt = prompt + INTERNAL_DIALOGUE_FIELD
+        prompt = prompt + CONCISE_PROMPT
+        #print(prompt)
 
-    def open_discussion(self, proposed_team):
-        # Randomly generate an opinion
-        # opinion = interact_with_gpt3(f"Player {self.name} with role {self.role} has been asked about the proposed team {proposed_team}. What's their opinion?")
+        """
+        gpt_response = self.call_gpt(prompt)  
+
+        parsed_data = json.loads(gpt_response)
+
+        team = parsed_data["team"]
+        internal_reasoning = parsed_data["internal"] if parsed_data["internal"] else None
+        external_reasoning = parsed_data["external"] 
+        
+        print(internal_reasoning)
+        """
+        team = random.sample(players, mission_size)    
+        external_reasoning = "Just 'cuz" # Placeholder
+        
+        return team, external_reasoning
+    
+    def open_discussion(self, proposed_team, history):
+
+        prompt = (INITIAL_PROMPT + self.role_context() + HISTORY_PROMPT + ",".join(history) + "\n"
+             + DISCUSSION_PROMPT  + FORMAT_PROMPT 
+            + TEAM_FIELD  + EXTERNAL_DIALOGUE_FIELD 
+        )
+        if self.role == 'spy':
+            prompt = prompt + INTERNAL_DIALOGUE_FIELD
+
+        prompt = prompt + CONCISE_PROMPT
+        print(prompt)
+
+
         opinion = random.choice(['doubt', 'approval', 'neutral']) # Placeholder
 
         specific_accusation_or_support = None
@@ -65,6 +73,25 @@ class Player:
         
         return opinion, specific_accusation_or_support
 
+
+    def vote_on_team(self, proposed_team):
+        # This method will randomly return 'approve' or 'reject'
+        # Later on, this can be replaced by GPT-3 generated opinions.
+        return random.choice(['pass', 'fail'])
+
+    def execute_mission(self):
+        # For spies: random chance to sabotage
+        # For resistance: always return 'success'
+        # This can be enhanced using GPT-3 to make more strategic decisions.
+        if self.role == 'spy':
+            # decision = interact_with_gpt3(f"Player {self.name} with role {self.role} is on the mission. Do they sabotage or let it succeed?")
+            decision = random.choice(['success', 'sabotage']) # Placeholder
+        else:
+            decision = 'success'
+
+        return decision
+
+
     def respond(self, reactors):
         # Generate a defense/response
         # response = interact_with_gpt3(f"Player {self.name} with role {self.role} has been accused by {reactors}. How do they defend themselves?")
@@ -72,15 +99,15 @@ class Player:
         return response
         
 
-    def interact_with_gpt3(self, prompt):
-        response = openai.ChatCompletion.create(
+    def call_gpt(self, prompt):
+        response = openai.Completion.create(
             model="gpt-3.5-turbo-instruct",
-            messages=prompt,
-            function_call="auto",
+            prompt=prompt,
+            max_tokens = 700
         )
         input("Press Enter to continue...")
         print(response)
-        return response
+        return response.choices[0].text.strip()
 
 
 
