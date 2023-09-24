@@ -14,14 +14,14 @@ LEADER_PROMPT = "Propose a team, explain why."
 DISCUSSION_PROMPT = "Share thoughts on proposed team. You may choose to throw suspicion on any players" #Proposed team is in history...
 VOTE_PROMPT = "Vote on proposed team."
 MISSION_PROMPT = "You are a spy on the mission. Vote to pass or fail."
+ACCUSED_PROMPT = "You have been called out, defend yourself."
 
 FORMAT_PROMPT = " Respond with JSON, with fields:"
 TEAM_FIELD = "team: *array of team members* "
 INTERNAL_DIALOGUE_FIELD = "internal: *your plan* "
 EXTERNAL_DIALOGUE_FIELD = "external: *what you tell the other players* "
 ACCUSATION_FIELD = "suspect: *array of names, can be empty* "
-VOTE_FIELD = "vote: *yes or no* "
-MISSION_FIELD = "vote: *pass or fail* " #No need for good guys to get prompted...
+VOTE_FIELD = "vote: *pass or fail* "
 CONCISE_PROMPT = "Be concise."
 
 

@@ -62,7 +62,7 @@ class Game:
             for target in accusations:
                 for player in self.players:
                     if player.name == target:
-                        response = player.respond()
+                        response = player.respond(self.history)
                         self.add_to_history(f"{player.name} defense: {response}")
                         print(f"{target} responds: {response}")
                         #break No real need for efficiency here its 5 players
@@ -110,8 +110,8 @@ class Game:
         return accused   
 
     def team_voting(self, proposed_team):
-        votes = [player.vote_on_team(proposed_team) for player in self.players]
-        approved = votes.count('approve') > len(self.players) / 2
+        votes = [player.vote_on_team(proposed_team, self.history) for player in self.players]
+        approved = votes.count('pass') > len(self.players) / 2
         if(approved):
             print("\n The team is approved.")
         return approved
@@ -119,8 +119,8 @@ class Game:
 
     def execute_mission(self, approved_team_names):
         approved_team = self.names_to_players(approved_team_names)
-        mission_votes = [player.execute_mission() for player in approved_team]
-        sabotages = mission_votes.count('sabotage')
+        mission_votes = [player.execute_mission(self.history) for player in approved_team]
+        sabotages = mission_votes.count('fail')
         if sabotages > 0:
             self.add_to_history(f"Mission failed: {sabotages} sabotages.")
             print(f"The mission fails with {sabotages} fail votes \n")
@@ -128,6 +128,7 @@ class Game:
             self.add_to_history("The mission was a success!")
             print(f"The mission passes! \n")
 
+        #For some games some missions require 2 votes to fail... this doesnt cover that
         return sabotages == 0
 
 
