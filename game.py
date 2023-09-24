@@ -1,9 +1,10 @@
 import random
 from player import Player
 from constants import TOTAL_PLAYERS, NUM_SPIES, NUM_RESISTANCE, MISSIONS
+from threading import Event
 
 class Game:
-    def __init__(self):
+    def __init__(self, gui=None):
         self.players = []
         self.history = []  # Added history attribute
         self.setup_players()
@@ -11,6 +12,8 @@ class Game:
         self.current_team = []
         self.current_mission_index = 0
         self.leader_index = 0
+        self.next_action_event = Event()
+        self.gui = gui
 
     def add_to_history(self, event):  # Added method to log events
         self.history.append(event)
@@ -49,6 +52,7 @@ class Game:
             print(f"Reasoning: {leader_reasoning}")
             self.add_to_history("Proposed team: " + ", ".join([player for player in proposed_team])) 
             self.add_to_history("Reasoning: " + leader_reasoning)
+            self.pause()
             
             if vote_attempts == MAX_VOTE_ATTEMPTS - 1:  # If this is the 5th vote attempt, auto-approve
                 print("The 5th vote attempt auto-passes!")
@@ -57,6 +61,7 @@ class Game:
             # Open Discussion
             accusations = self.open_discussion(proposed_team)
             print(accusations)
+            self.pause()
 
             # Response
             for target in accusations:
@@ -107,6 +112,8 @@ class Game:
                 if suspected_player and suspected_player not in accused:  # Check if the suspected_player is not empty and not in the set yet
                     accused.append(suspected_player)
                     print(f"{suspected_player} accused")
+
+            self.pause()
         return accused   
 
 
@@ -119,6 +126,7 @@ class Game:
         approved = votes.count('pass') > len(self.players) / 2
         if(approved):
             print("\n The team is approved.")
+
         return approved
     
 
@@ -134,6 +142,7 @@ class Game:
             print(f"The mission passes! \n")
 
         #For some games some missions require 2 votes to fail... this doesnt cover that
+
         return sabotages == 0
 
 
@@ -158,4 +167,6 @@ class Game:
             print(event)
 
     def pause(self):
-        input("Press Enter to continue...")
+        print("Waitin'")
+        self.gui.wait_for_next_action()
+
