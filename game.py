@@ -10,41 +10,31 @@ class Game:
         self.current_team = []
         self.current_mission_index = 0
         self.leader_index = 0
+        self.history = []  # Added history attribute
+
+    def add_to_history(self, event):  # Added method to log events
+        self.history.append(event)
 
     def setup_players(self):
-        names = ['Alice', 'Bob', 'Claire', 'Dave', 'Ed'] #Frank, Gary etc
+        names = ['Alice', 'Bob', 'Claire', 'Dave', 'Ed']  # Add more names if needed
         roles = ['spy'] * NUM_SPIES + ['good'] * NUM_RESISTANCE
         random.shuffle(roles)
         for name, role in zip(names, roles):
             self.players.append(Player(name, role))
-
-        print("\nPlayers and their roles:")
-        for player in self.players:
-            print(f"{player.name} is a {player.role}")
+            self.add_to_history(f"{name} is a {role}")
 
     def play_round(self):
         MAX_VOTE_ATTEMPTS = 5
         vote_attempts = 0
 
         while vote_attempts < MAX_VOTE_ATTEMPTS:
-            proposed_team, leader_reasoning = self.propose_team_with_reasoning()
-            print(f"Reasoning: {leader_reasoning}")
-            
-            if vote_attempts == MAX_VOTE_ATTEMPTS - 1:  # If this is the 5th vote attempt, auto-approve
-                print("The 5th vote attempt auto-passes!")
+            proposed_team = self.propose_team()
+            self.add_to_history(f"Round {self.current_mission_index + 1} - Proposed team: {', '.join([player.name for player in proposed_team])}")
+            if vote_attempts == MAX_VOTE_ATTEMPTS - 1:
+                self.add_to_history("5th vote attempt auto-passes!")
                 break
 
-            # Open Discussion
-            accusations = self.open_discussion(proposed_team)
-
-            # Response
-            for target, reactors in accusations.items():
-                target_player = next(player for player in self.players if player.name == target)
-                response = target_player.respond(reactors)
-                print(f"{target} responds: {response}")
-            
             is_approved = self.team_voting(proposed_team)
-
             if is_approved:
                 break
             else:
@@ -84,10 +74,16 @@ class Game:
         return sabotages == 0
 
 
-    def feedback(self, mission_result):  #RENAME this
+    def feedback(self, mission_result):
+        outcome = "passed" if mission_result else "failed"
+        self.add_to_history(f"Mission {self.current_mission_index + 1} {outcome}")
         self.mission_outcomes.append(mission_result)
-        self.leader_index = (self.leader_index + 1) % TOTAL_PLAYERS
+        self.rotate_leader()
         self.current_mission_index += 1
+
+    def print_history(self):  # Added method to print the game history
+        for event in self.history:
+            print(event)
 
     def propose_team_with_reasoning(self):
         leader = self.players[self.leader_index]
