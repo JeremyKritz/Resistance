@@ -12,7 +12,7 @@ class Game:
         self.leader_index = 0
 
     def setup_players(self):
-        names = ['Alice', 'Bob', 'Claire', 'Dave', 'Ed']
+        names = ['Alice', 'Bob', 'Claire', 'Dave', 'Ed'] #Frank, Gary etc
         roles = ['spy'] * NUM_SPIES + ['good'] * NUM_RESISTANCE
         random.shuffle(roles)
         for name, role in zip(names, roles):
@@ -22,17 +22,27 @@ class Game:
         for player in self.players:
             print(f"{player.name} is a {player.role}")
 
-
     def play_round(self):
         MAX_VOTE_ATTEMPTS = 5
         vote_attempts = 0
 
         while vote_attempts < MAX_VOTE_ATTEMPTS:
-            proposed_team = self.propose_team()
+            proposed_team, leader_reasoning = self.propose_team_with_reasoning()
+            print(f"Reasoning: {leader_reasoning}")
+            
             if vote_attempts == MAX_VOTE_ATTEMPTS - 1:  # If this is the 5th vote attempt, auto-approve
                 print("The 5th vote attempt auto-passes!")
                 break
 
+            # Open Discussion
+            accusations = self.open_discussion(proposed_team)
+
+            # Response
+            for target, reactors in accusations.items():
+                target_player = next(player for player in self.players if player.name == target)
+                response = target_player.respond(reactors)
+                print(f"{target} responds: {response}")
+            
             is_approved = self.team_voting(proposed_team)
 
             if is_approved:
@@ -47,7 +57,6 @@ class Game:
     def rotate_leader(self):
         # Move to the next leader. If at the end of the player list, loop back to the start.
         self.leader_index = (self.leader_index + 1) % len(self.players)
-
 
     def propose_team(self):
         leader = self.players[self.leader_index]
@@ -79,3 +88,26 @@ class Game:
         self.mission_outcomes.append(mission_result)
         self.leader_index = (self.leader_index + 1) % TOTAL_PLAYERS
         self.current_mission_index += 1
+
+    def propose_team_with_reasoning(self):
+        leader = self.players[self.leader_index]
+        proposed_team, reasoning = leader.propose_team_with_reasoning(self.players, MISSIONS[self.current_mission_index])
+        proposed_team_names = ", ".join(str(player.name) for player in proposed_team)
+        print(f"\n {leader.name} has proposed the team: {proposed_team_names}")
+        return proposed_team, reasoning
+
+    def open_discussion(self, proposed_team):
+        accusations = {}
+        for player in self.players:
+            opinion, specific_accusation_or_support = player.open_discussion(proposed_team)
+            print(f"{player.name} says: {opinion}")
+            
+            if specific_accusation_or_support:
+                target_player_name = specific_accusation_or_support['player'].name
+                print(f"{player.name} {specific_accusation_or_support['action']} {target_player_name}: {specific_accusation_or_support['reason']}")
+                
+                if specific_accusation_or_support['action'] == 'accuses' and target_player_name not in accusations:
+                    accusations[target_player_name] = []
+                accusations[target_player_name].append(player.name)
+        
+        return accusations

@@ -1,42 +1,90 @@
 # player.py
 import tkinter as tk
 import random
+import openai
 
 class Player:
     def __init__(self, name, role):
         self.name = name
         self.role = role
 
-    def propose_team(self, all_players, mission_size):
-        """
-        Propose a team of players for the mission.
-        Currently, this will select a random set of players, including the player itself.
-        """
-        return random.sample(all_players, mission_size)
+    def propose_team(self, players, mission_size):
+        # This method will randomly select players for the team.
+        # Later on, this can be replaced by GPT-3 generated teams.
+        return random.sample(players, mission_size)
+
+    def propose_team_with_reasoning(self, players, mission_size):
+        # Randomly selects players for the team.
+        proposed_team = self.propose_team(players, mission_size)
+        
+        # Call GPT-3 for reasoning
+        # reasoning = interact_with_gpt3(f"Player {self.name} with role {self.role} is proposing a team. What's their reasoning?")
+        reasoning = "tbd." # Placeholder
+        
+        return proposed_team, reasoning
 
     def vote_on_team(self, proposed_team):
-        """
-        Decide whether to approve or disapprove of the proposed team.
-        Randomly vote 'approve' or 'disapprove'.
-        """
-        vote = random.choice(['approve', 'disapprove'])
-        print(f"{self.name} ({self.role}) has voted: {vote}")
-        return vote
+        # This method will randomly return 'approve' or 'reject'
+        # Later on, this can be replaced by GPT-3 generated opinions.
+        return random.choice(['approve', 'reject'])
 
     def execute_mission(self):
-        """
-        Decide how to execute the mission.
-        If the player is a spy, they can choose to sabotage or not.
-        Resistance players will always vote for success.
-        """
+        # For spies: random chance to sabotage
+        # For resistance: always return 'success'
+        # This can be enhanced using GPT-3 to make more strategic decisions.
         if self.role == 'spy':
-            vote = random.choice(['success', 'sabotage'])
-            print(f"{self.name} (a spy), has voted: {vote}")
-            return vote
+            # decision = interact_with_gpt3(f"Player {self.name} with role {self.role} is on the mission. Do they sabotage or let it succeed?")
+            decision = random.choice(['success', 'sabotage']) # Placeholder
         else:
-            return 'success'
+            decision = 'success'
+        return decision
+
+    def open_discussion(self, proposed_team):
+        # Randomly generate an opinion
+        # opinion = interact_with_gpt3(f"Player {self.name} with role {self.role} has been asked about the proposed team {proposed_team}. What's their opinion?")
+        opinion = random.choice(['doubt', 'approval', 'neutral']) # Placeholder
+
+        specific_accusation_or_support = None
+        if opinion == 'doubt':
+            # specific_reaction = interact_with_gpt3(f"Player {self.name} has doubts. Do they accuse anyone specifically from the proposed team {proposed_team}?")
+            specific_reaction = {"action": "accuses", "player": random.choice(proposed_team), "reason": "They seem suspicious."} # Placeholder
+            specific_accusation_or_support = specific_reaction
+        
+        return opinion, specific_accusation_or_support
+
+    def respond(self, reactors):
+        # Generate a defense/response
+        # response = interact_with_gpt3(f"Player {self.name} with role {self.role} has been accused by {reactors}. How do they defend themselves?")
+        response = "I have done nothing wrong. Trust me." # Placeholder
+        return response
+        
+
+    def interact_with_gpt3(self, messages, functions=[]):
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo-0613",
+            messages=messages,
+            functions=functions,
+            function_call="auto",
+        )
+        return response
 
 
+
+
+
+
+
+
+"""
+Memory is super vital...
+
+We may want to implement plans...
+ie - remind the agent what they had in mind during earlier rounds...
+
+gpt-3.5-turbo-instruct?
+
+
+"""
 
 
 class PlayerElement:
