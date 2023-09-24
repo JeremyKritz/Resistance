@@ -109,8 +109,13 @@ class Game:
                     print(f"{suspected_player} accused")
         return accused   
 
+
+
     def team_voting(self, proposed_team):
         votes = [player.vote_on_team(proposed_team, self.history) for player in self.players]
+        for player, vote in zip(self.players, votes):
+            self.add_to_history(f"{player.name} voted {vote}")
+
         approved = votes.count('pass') > len(self.players) / 2
         if(approved):
             print("\n The team is approved.")
@@ -146,7 +151,6 @@ class Game:
         
     def names_to_players(self, player_names):
         return [player for player in self.players if player.name in player_names]
-
 
 
     def print_history(self):  # Added method to print the game history

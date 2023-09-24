@@ -16,13 +16,13 @@ VOTE_PROMPT = "Vote on proposed team."
 MISSION_PROMPT = "You are a spy on the mission. Vote to pass or fail."
 ACCUSED_PROMPT = "You have been called out, defend yourself."
 
-FORMAT_PROMPT = " Respond with JSON, with fields:"
+FORMAT_PROMPT = " Respond with parsable JSON, with below fields:"
 TEAM_FIELD = "team: *array of team members* "
-INTERNAL_DIALOGUE_FIELD = "internal: *your plan* "
+INTERNAL_DIALOGUE_FIELD = "internal: *your plan (string)* "
 EXTERNAL_DIALOGUE_FIELD = "external: *what you tell the other players* "
 ACCUSATION_FIELD = "suspect: *array of names, can be empty* "
 VOTE_FIELD = "vote: *pass or fail* "
-CONCISE_PROMPT = "Be concise."
+CONCISE_PROMPT = "Be consise, and ENSURE PROPER PARSABLE JSON. "
 
 
 

@@ -4,6 +4,7 @@ import random
 import openai
 from constants import *
 import json
+import re
 openai.api_key = '' #HIDE lol
 
 class Player:
@@ -34,20 +35,21 @@ class Player:
         prompt = prompt + CONCISE_PROMPT
         #print(prompt)
 
-        """
         gpt_response = self.call_gpt(prompt)  
 
         parsed_data = json.loads(gpt_response)
 
         team = parsed_data["team"]
-        internal_reasoning = parsed_data["internal"] if parsed_data["internal"] else None
         external_reasoning = parsed_data["external"] 
         
-        print(internal_reasoning)
-        """
-        team_names = [player.name for player in players]
-        team = random.sample(team_names, mission_size)    
-        external_reasoning = "Just 'cuz" # Placeholder
+        if self.role == 'spy':
+            internal_reasoning = parsed_data["internal"]
+            print(f"{self.name} (internal): {internal_reasoning}")
+
+
+        # team_names = [player.name for player in players]
+        # team = random.sample(team_names, mission_size)    
+        # external_reasoning = "Just 'cuz" # Placeholder
         
         return team, external_reasoning
     
@@ -63,22 +65,23 @@ class Player:
             prompt = prompt + INTERNAL_DIALOGUE_FIELD
 
         prompt = prompt + CONCISE_PROMPT
-        #print(prompt)
+        #print("\n" + prompt + "\n")
 
-        # gpt_response = self.call_gpt(prompt)  
+        gpt_response = self.call_gpt(prompt)  
 
-        # parsed_data = json.loads(gpt_response)
+        parsed_data = json.loads(gpt_response)
 
-        # internal_reasoning = parsed_data["internal"] if parsed_data["internal"] else None
-        # external_reasoning = parsed_data["external"] 
-        # suspected_players = parsed_data["suspect"] if parsed_data["suspect"] else [""]
-
-        #print(f"{self.name}: {internal_reasoning}")
+        
+        external_reasoning = parsed_data["external"] 
+        suspected_players = parsed_data["suspect"] if parsed_data["suspect"] else [""]
+        if self.role == 'spy':
+            internal_reasoning = parsed_data["internal"]
+            print(f"{self.name} (internal): {internal_reasoning}")
         
 
 
-        external_reasoning = "Idk seems fine" # Placeholder
-        suspected_players = random.sample(proposed_team, random.choice([0, 1]))
+        #external_reasoning = "Idk seems fine" # Placeholder
+        #suspected_players = random.sample(proposed_team, random.choice([0, 1]))
 
         return external_reasoning, suspected_players
 
@@ -91,14 +94,15 @@ class Player:
             + VOTE_FIELD
         )
 
-        """
+        #print("\n" + prompt + "\n")
+
+
         #Im assuming it can get the proposed team from history...
         gpt_response = self.call_gpt(prompt)
         parsed_data = json.loads(gpt_response)
-
         vote = parsed_data["vote"]
-        """
-        vote = random.choice(['pass', 'fail']) 
+
+        #vote = random.choice(['pass', 'fail']) 
 
         return vote
 
@@ -115,7 +119,9 @@ class Player:
         )
         prompt += INTERNAL_DIALOGUE_FIELD
         prompt += CONCISE_PROMPT
-        """
+
+        #print("\n" + prompt + "\n")
+
         gpt_response = self.call_gpt(prompt)
         parsed_data = json.loads(gpt_response)
 
@@ -123,9 +129,9 @@ class Player:
         internal_reasoning = parsed_data["internal"]
 
         print(internal_reasoning)
-        """
 
-        vote = random.choice(['pass', 'fail']) 
+
+        #vote = random.choice(['pass', 'fail']) 
 
         return vote
 
@@ -141,36 +147,82 @@ class Player:
             prompt += INTERNAL_DIALOGUE_FIELD
         prompt += CONCISE_PROMPT
 
-        """
+        #print("\n" + prompt + "\n")
+
+
         gpt_response = self.call_gpt(prompt)
         parsed_data = json.loads(gpt_response)
 
         external_reasoning = parsed_data["external"]
-        internal_reasoning = parsed_data["internal"] if parsed_data["internal"] else None
+        if self.role == 'spy':
+            internal_reasoning = parsed_data["internal"]
+            print(f"{self.name} (internal): {internal_reasoning}")
 
-        #print(f"{self.name}: {internal_reasoning}")
-        """
 
-
-        external_reasoning = "I have done nothing wrong. Trust me."
+        #external_reasoning = "I have done nothing wrong. Trust me."
 
         return external_reasoning
             
 
     def call_gpt(self, prompt):
         print("\n Calling GPT")
-        print(prompt)
+        #print(prompt)
         response = openai.Completion.create(
             model="gpt-3.5-turbo-instruct",
             prompt=prompt,
             max_tokens = 700
         )
         
-        print(response)
+        # Extracting the text and token usage for printing
+        response_text = clean_json(response.choices[0].text.strip())
+
+        # Pretty print the response_text (which is a JSON string)
+        try:
+            pretty_response = json.loads(response_text)
+        except Exception as e:
+            print(e)
+            print(response)
+
+        token_info = {
+            "Prompt Tokens": response.usage["prompt_tokens"],
+            "Completion Tokens": response.usage["completion_tokens"],
+            "Total Tokens": response.usage["total_tokens"]
+        }
+            
+        print("\nResponse Text:\n", pretty_response)
+        print("\nToken Usage:\n", token_info)
+        
         input("\n Press Enter to continue... \n ")
-        return response.choices[0].text.strip()
+        return response_text
+    
 
+def clean_json(text):
+    """
+    Given a starting text from GPT, this function tries to:
+    1. Find the start of the JSON structure.
+    2. Handle keys with single or no quotes.
+    3. Handle values that aren't wrapped in quotes.
+    4. Return a cleaner, more predictable JSON structure.
+    """
+    # Convert keys with single quotes to double quotes
+    text = re.sub(r"(\s*?{\s*?|\s*?,\s*?)(\'|\")(\w+)(\'|\")\s*?:", r'\1"\3":', text)
 
+    # Convert keys without quotes to double quotes
+    text = re.sub(r"(\s*?{\s*?|\s*?,\s*?)(\w+)\s*?:", r'\1"\2":', text)
+
+    # Convert values that are not wrapped in quotes but should be (like player names)
+    text = re.sub(r":\s*\[([\w\s,]+)\]", lambda match: ': ["' + '", "'.join(match.group(1).split(", ")) + '"]', text)
+    
+    return text
+
+# # Test
+# text_sample = """
+# {
+#   "text": " \n\n\nsuspect: [Dave, Ed]\nexternal: \"I have my doubts about Dave and Ed as they seem to be agreeing too easily with the proposed team. Let's watch out for any suspicious behavior during the mission.\"",
+# """
+
+# cleaned_text = clean_json(text_sample)
+# print(cleaned_text)
 
 
 
