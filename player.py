@@ -45,33 +45,41 @@ class Player:
         
         print(internal_reasoning)
         """
-        team = random.sample(players, mission_size)    
+        team_names = [player.name for player in players]
+        team = random.sample(team_names, mission_size)    
         external_reasoning = "Just 'cuz" # Placeholder
         
         return team, external_reasoning
     
+
+
+
     def open_discussion(self, proposed_team, history):
 
         prompt = (INITIAL_PROMPT + self.role_context() + HISTORY_PROMPT + ",".join(history) + "\n"
              + DISCUSSION_PROMPT  + FORMAT_PROMPT 
-            + TEAM_FIELD  + EXTERNAL_DIALOGUE_FIELD 
+            + ACCUSATION_FIELD + EXTERNAL_DIALOGUE_FIELD 
         )
         if self.role == 'spy':
             prompt = prompt + INTERNAL_DIALOGUE_FIELD
 
         prompt = prompt + CONCISE_PROMPT
-        print(prompt)
+        #print(prompt)
 
+        # gpt_response = self.call_gpt(prompt)  
 
-        opinion = random.choice(['doubt', 'approval', 'neutral']) # Placeholder
+        # parsed_data = json.loads(gpt_response)
 
-        specific_accusation_or_support = None
-        if opinion == 'doubt':
-            # specific_reaction = interact_with_gpt3(f"Player {self.name} has doubts. Do they accuse anyone specifically from the proposed team {proposed_team}?")
-            specific_reaction = {"action": "accuses", "player": random.choice(proposed_team), "reason": "They seem suspicious."} # Placeholder
-            specific_accusation_or_support = specific_reaction
+        # internal_reasoning = parsed_data["internal"] if parsed_data["internal"] else None
+        # external_reasoning = parsed_data["external"] 
+        # suspected_players = parsed_data["suspect"] if parsed_data["suspect"] else [""]
         
-        return opinion, specific_accusation_or_support
+
+
+        external_reasoning = "Idk seems fine" # Placeholder
+        suspected_players = random.sample(proposed_team, random.choice([0, 1]))
+
+        return external_reasoning, suspected_players
 
 
     def vote_on_team(self, proposed_team):
@@ -92,7 +100,7 @@ class Player:
         return decision
 
 
-    def respond(self, reactors):
+    def respond(self):
         # Generate a defense/response
         # response = interact_with_gpt3(f"Player {self.name} with role {self.role} has been accused by {reactors}. How do they defend themselves?")
         response = "I have done nothing wrong. Trust me." # Placeholder

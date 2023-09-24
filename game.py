@@ -47,8 +47,8 @@ class Game:
         while vote_attempts < MAX_VOTE_ATTEMPTS:
             proposed_team, leader_reasoning = self.propose_team_with_reasoning()
             print(f"Reasoning: {leader_reasoning}")
-            self.add_to_history("Proposed team: " + ", ".join([player.name for player in proposed_team])) 
-            #self.add_to_history("Why: " + leader_reasoning)
+            self.add_to_history("Proposed team: " + ", ".join([player for player in proposed_team])) 
+            self.add_to_history("Reasoning: " + leader_reasoning)
             
             if vote_attempts == MAX_VOTE_ATTEMPTS - 1:  # If this is the 5th vote attempt, auto-approve
                 print("The 5th vote attempt auto-passes!")
@@ -56,12 +56,16 @@ class Game:
 
             # Open Discussion
             accusations = self.open_discussion(proposed_team)
+            print(accusations)
 
             # Response
-            for target, reactors in accusations.items():
-                target_player = next(player for player in self.players if player.name == target)
-                response = target_player.respond(reactors)
-                print(f"{target} responds: {response}")
+            for target in accusations:
+                for player in self.players:
+                    if player.name == target:
+                        response = player.respond()
+                        self.add_to_history(f"{player.name} defense: {response}")
+                        print(f"{target} responds: {response}")
+                        #break No real need for efficiency here its 5 players
             
             is_approved = self.team_voting(proposed_team)
 
@@ -82,30 +86,28 @@ class Game:
     def propose_team_with_reasoning(self):
         leader = self.players[self.leader_index]
         proposed_team, reasoning = leader.propose_team(self.players, MISSIONS[self.current_mission_index], self.history)
-        proposed_team_names = ", ".join(str(player.name) for player in proposed_team)
+        proposed_team_names = ", ".join(str(player) for player in proposed_team)
         print(f"\n {leader.name} has proposed the team: {proposed_team_names}")
         return proposed_team, reasoning
 
     def open_discussion(self, proposed_team):
-        accusations = {}
+        accused = []
+
+        # Loop through all players to gather their opinions on the proposed team
         for player in self.players:
-            opinion, specific_accusation_or_support = player.open_discussion(proposed_team, self.history)
+            # Get the player's opinion and list of suspected players
+            opinion, suspected_players = player.open_discussion(proposed_team, self.history)
+            
             self.add_to_history(f"{player.name} says: {opinion}")
             print(f"{player.name} says: {opinion}")
-            #self.pause()
             
-            if specific_accusation_or_support:
-                target_player_name = specific_accusation_or_support['player'].name
-                action_text = f"{player.name} {specific_accusation_or_support['action']} {target_player_name}: {specific_accusation_or_support['reason']}"
-                self.add_to_history(action_text)
-                print(action_text)
-                
-                if specific_accusation_or_support['action'] == 'accuses' and target_player_name not in accusations:
-                    accusations[target_player_name] = []
-                accusations[target_player_name].append(player.name)
-        
-        return accusations
-    
+            # Iterate through suspected players and add them to the accusations dictionary
+
+            for suspected_player in suspected_players:
+                if suspected_player and suspected_player not in accused:  # Check if the suspected_player is not empty and not in the set yet
+                    accused.append(suspected_player)
+                    print(f"{suspected_player} accused")
+        return accused   
 
     def team_voting(self, proposed_team):
         votes = [player.vote_on_team(proposed_team) for player in self.players]
@@ -115,7 +117,8 @@ class Game:
         return approved
     
 
-    def execute_mission(self, approved_team):
+    def execute_mission(self, approved_team_names):
+        approved_team = self.names_to_players(approved_team_names)
         mission_votes = [player.execute_mission() for player in approved_team]
         sabotages = mission_votes.count('sabotage')
         if sabotages > 0:
@@ -140,6 +143,8 @@ class Game:
             self.print_history()
 
         
+    def names_to_players(self, player_names):
+        return [player for player in self.players if player.name in player_names]
 
 
 
