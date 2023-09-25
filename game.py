@@ -43,6 +43,8 @@ class Game:
 
 
     def play_round(self):
+        for player in self.players:
+            player.gui.clear_all()
         print(f"\n START ROUND {self.current_mission_index+1} \n")
         MAX_VOTE_ATTEMPTS = 5
         vote_attempts = 0
@@ -147,9 +149,10 @@ class Game:
 
 
     def feedback(self, mission_result):
-        outcome = "passed" if mission_result else "failed"
+        outcome = "pass" if mission_result else "fail"
         self.add_to_history(f"Mission {self.current_mission_index + 1} {outcome}")
         self.mission_outcomes.append(mission_result)
+        self.gui.update_mission(self.current_mission_index, outcome)
         self.rotate_leader()
         self.current_mission_index += 1
 

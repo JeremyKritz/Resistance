@@ -12,23 +12,25 @@ class GameWindow:
             self.rectangle = self.canvas.create_rectangle(x, y, x+30, y+30, fill='gray')
 
         def set_outcome(self, outcome):
-            self.canvas.itemconfig(self.rectangle, fill='green' if outcome else 'red')
+            print("mission element")
+            self.canvas.itemconfig(self.rectangle, fill='green' if outcome == 'pass' else 'red')
 
     def __init__(self):
         self.game = Game(gui=self)
         self.root = tk.Tk()
         self.root.title("Resistance Game Visualization")
 
-        self.canvas = tk.Canvas(self.root, bg='white', width=800, height=600)
-        self.canvas.pack()
+        # Status Bar at the top
+        self.status_bar = ttk.Label(self.root, text="Game Status: ", font=("Arial", 16, "bold"), relief=tk.SUNKEN, anchor=tk.W)
+        self.status_bar.pack(fill=tk.X, pady=10)
 
-
-        self.current_mission_index = 0
+        self.canvas = tk.Canvas(self.root, bg='white', width=800, height=150)  # Adjusted height for canvas
+        self.canvas.pack(pady=20)  # Separate canvas from status bar and player units
 
         # Create Player Elements:
         self.player_units = []
-        frame = ttk.Frame(self.canvas)
-        frame.pack(side=tk.BOTTOM, fill=tk.X)
+        frame = ttk.Frame(self.root)  # frame is packed inside root, not inside canvas
+        frame.pack(pady=20)  # Adjust padding for better separation
 
         for player in self.game.players:
             player_unit = PlayerUnit(frame, player)
@@ -39,16 +41,21 @@ class GameWindow:
         # Create Mission Elements:
         self.mission_elements = []
         for idx, _ in enumerate(MISSIONS):
-            self.mission_elements.append(self.MissionElement(self.canvas, 50 + idx*40, 550))
+            self.mission_elements.append(self.MissionElement(self.canvas, 50 + idx*40, 50))  # Centered y-coordinate inside canvas
 
         self.next_action_button = tk.Button(self.root, text="Next Action", command=self.next_action)
-        self.next_action_button.pack()
+        self.next_action_button.pack(pady=10)
         self.next_action_received = False
-
         self.start_game_button = tk.Button(self.root, text="Start Game", command=self.start_game)
-        self.start_game_button.pack()
+        self.start_game_button.pack(pady=10)
+
+
+    def update_game_status(self, status):
+        """ Update the game status on the status bar """
+        self.status_bar["text"] = f"Game Status: {status}"
 
     def update_mission(self, idx, outcome):
+        print("hmm")
         self.mission_elements[idx].set_outcome(outcome)
 
     def next_action(self):
@@ -58,15 +65,8 @@ class GameWindow:
         while not self.next_action_received:
             self.root.update_idletasks()
             self.root.update()
-
-        # Reset the flag for the next input
         self.next_action_received = False
 
-    def update_player_dialogue(self, player_idx, text, internal=False):
-        self.player_units[player_idx].update_dialogue(text, internal)
-
-    def update_player_vote(self, player_idx, vote):
-        self.player_units[player_idx].update_vote(vote)
 
     def run(self):
         self.root.mainloop()

@@ -122,7 +122,7 @@ class Player:
             vote = parsed_data["vote"]
         else:
             vote = random.choice(['pass', 'fail']) 
-
+        self.gui.update_vote(vote)
         return vote
 
 
@@ -152,6 +152,7 @@ class Player:
         else:
             vote = random.choice(['pass', 'fail']) 
 
+        self.gui.update_vote(vote)
         return vote
 
 
