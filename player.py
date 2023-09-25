@@ -13,6 +13,7 @@ class Player:
         self.role = role
         self.fellow_spies = fellow_spies if fellow_spies else []
         self.gui = None 
+        self.enableGPT = False
 
 
     def role_context(self):
@@ -32,26 +33,34 @@ class Player:
         if self.role == 'spy':
             prompt = prompt + INTERNAL_DIALOGUE_FIELD
         prompt = prompt + CONCISE_PROMPT
-        #print(prompt)
 
-        # gpt_response = self.call_gpt(prompt)  
+        if self.enableGPT:
 
-        # parsed_data = json.loads(gpt_response)
+            gpt_response = self.call_gpt(prompt)  
 
-        # team = parsed_data["team"]
-        # external_reasoning = parsed_data["external"] 
-        
-        # if self.role == 'spy':
-        #     internal_reasoning = parsed_data["internal"]
-        #     print(f"{self.name} (internal): {internal_reasoning}")
+            parsed_data = json.loads(gpt_response)
 
+            team = parsed_data["team"]
+            external_reasoning = parsed_data["external"] 
+            
+            if self.role == 'spy':
+                internal_reasoning = parsed_data["internal"]
+                print(f"{self.name} (internal): {internal_reasoning}")
 
-        team_names = [player.name for player in players]
-        team = random.sample(team_names, mission_size)    
-        external_reasoning = "Just 'cuz" # Placeholder
+        else:
+            team_names = [player.name for player in players]
+            team = random.sample(team_names, mission_size)    
+            external_reasoning = "Just 'cuz" # Placeholder
+            if self.role == 'spy':
+                internal_reasoning = "*evil laugh*"
 
         print("proposed a team")
+
         self.gui.update_external_dialogue(external_reasoning)
+        if self.role == 'spy':
+            self.gui.update_internal_dialogue(internal_reasoning)
+
+
         return team, external_reasoning
     
 
@@ -68,23 +77,29 @@ class Player:
         prompt = prompt + CONCISE_PROMPT
         #print("\n" + prompt + "\n")
 
-        # gpt_response = self.call_gpt(prompt)  
+        if self.enableGPT:
 
-        # parsed_data = json.loads(gpt_response)
+            gpt_response = self.call_gpt(prompt)  
 
-        
-        # external_reasoning = parsed_data["external"] 
-        # suspected_players = parsed_data["suspect"] if parsed_data["suspect"] else [""]
-        # if self.role == 'spy':
-        #     internal_reasoning = parsed_data["internal"]
-        #     print(f"{self.name} (internal): {internal_reasoning}")
-        
+            parsed_data = json.loads(gpt_response)
 
+            
+            external_reasoning = parsed_data["external"] 
+            suspected_players = parsed_data.get("suspect", [""])
+            if self.role == 'spy':
+                internal_reasoning = parsed_data["internal"]
+                print(f"{self.name} (internal): {internal_reasoning}")
+            
 
-        external_reasoning = "Idk seems fine" # Placeholder
-        suspected_players = random.sample(proposed_team, random.choice([0, 1]))
+        else:
+            external_reasoning = "Idk seems fine" # Placeholder
+            suspected_players = random.sample(proposed_team, random.choice([0, 1]))
+            if self.role == 'spy':
+                internal_reasoning = "I am evil"
 
         self.gui.update_external_dialogue(external_reasoning)
+        if self.role == 'spy':
+            self.gui.update_internal_dialogue(internal_reasoning)
 
         return external_reasoning, suspected_players
 
@@ -101,11 +116,12 @@ class Player:
 
 
         #Im assuming it can get the proposed team from history...
-        gpt_response = self.call_gpt(prompt)
-        parsed_data = json.loads(gpt_response)
-        vote = parsed_data["vote"]
-
-        #vote = random.choice(['pass', 'fail']) 
+        if self.enableGPT:
+            gpt_response = self.call_gpt(prompt)
+            parsed_data = json.loads(gpt_response)
+            vote = parsed_data["vote"]
+        else:
+            vote = random.choice(['pass', 'fail']) 
 
         return vote
 
@@ -124,17 +140,17 @@ class Player:
         prompt += CONCISE_PROMPT
 
         #print("\n" + prompt + "\n")
+        if self.enableGPT:
+            gpt_response = self.call_gpt(prompt)
+            parsed_data = json.loads(gpt_response)
 
-        gpt_response = self.call_gpt(prompt)
-        parsed_data = json.loads(gpt_response)
+            vote = parsed_data["vote"]
+            internal_reasoning = parsed_data["internal"]
 
-        vote = parsed_data["vote"]
-        internal_reasoning = parsed_data["internal"]
+            print(internal_reasoning)
 
-        print(internal_reasoning)
-
-
-        #vote = random.choice(['pass', 'fail']) 
+        else:
+            vote = random.choice(['pass', 'fail']) 
 
         return vote
 
@@ -152,34 +168,31 @@ class Player:
 
         #print("\n" + prompt + "\n")
 
+        if self.enableGPT:
+            gpt_response = self.call_gpt(prompt)
+            parsed_data = json.loads(gpt_response)
 
-        gpt_response = self.call_gpt(prompt)
-        parsed_data = json.loads(gpt_response)
+            external_reasoning = parsed_data["external"]
+            if self.role == 'spy':
+                internal_reasoning = parsed_data["internal"]
+                print(f"{self.name} (internal): {internal_reasoning}")
 
-        external_reasoning = parsed_data["external"]
-        if self.role == 'spy':
-            internal_reasoning = parsed_data["internal"]
-            print(f"{self.name} (internal): {internal_reasoning}")
-
-
-        #external_reasoning = "I have done nothing wrong. Trust me."
+        else:
+            external_reasoning = "I have done nothing wrong. Trust me."
 
         return external_reasoning
             
 
     def call_gpt(self, prompt):
         print("\n Calling GPT")
-        #print(prompt)
         response = openai.Completion.create(
             model="gpt-3.5-turbo-instruct",
             prompt=prompt,
             max_tokens = 700
         )
         
-        # Extracting the text and token usage for printing
         response_text = clean_json(response.choices[0].text.strip())
 
-        # Pretty print the response_text (which is a JSON string)
         try:
             pretty_response = json.loads(response_text)
         except Exception as e:
@@ -195,18 +208,11 @@ class Player:
         print("\nResponse Text:\n", pretty_response)
         print("\nToken Usage:\n", token_info)
         
-        input("\n Press Enter to continue... \n ")
+        #input("\n Press Enter to continue... \n ")
         return response_text
     
 
 def clean_json(text):
-    """
-    Given a starting text from GPT, this function tries to:
-    1. Find the start of the JSON structure.
-    2. Handle keys with single or no quotes.
-    3. Handle values that aren't wrapped in quotes.
-    4. Return a cleaner, more predictable JSON structure.
-    """
     # Convert keys with single quotes to double quotes
     text = re.sub(r"(\s*?{\s*?|\s*?,\s*?)(\'|\")(\w+)(\'|\")\s*?:", r'\1"\3":', text)
 
@@ -217,18 +223,6 @@ def clean_json(text):
     text = re.sub(r":\s*\[([\w\s,]+)\]", lambda match: ': ["' + '", "'.join(match.group(1).split(", ")) + '"]', text)
     
     return text
-
-# # Test
-# text_sample = """
-# {
-#   "text": " \n\n\nsuspect: [Dave, Ed]\nexternal: \"I have my doubts about Dave and Ed as they seem to be agreeing too easily with the proposed team. Let's watch out for any suspicious behavior during the mission.\"",
-# """
-
-# cleaned_text = clean_json(text_sample)
-# print(cleaned_text)
-
-
-
 
 
 

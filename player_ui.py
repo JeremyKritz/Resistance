@@ -38,6 +38,12 @@ class PlayerUnit(ttk.Frame):
         self.dialogue_box.delete("1.0", tk.END) #clears it...
         self.dialogue_box.insert(tk.END, text)
         self.dialogue_box.yview(tk.END) # Auto-scroll to end
+    
+    def update_internal_dialogue(self, text):
+        self.internal_dialogue_box.delete("1.0", tk.END) #clears it...
+        self.internal_dialogue_box.insert(tk.END, text)
+        self.internal_dialogue_box.yview(tk.END) # Auto-scroll to end
+
 
     def update_vote(self, vote):
         self.vote_status["text"] = "Vote: " + vote
