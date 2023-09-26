@@ -5,6 +5,7 @@ from threading import Event
 
 class Game:
     def __init__(self, gui=None):
+        self.gui = gui
         self.players = []
         self.history = []  # Added history attribute
         self.setup_players()
@@ -13,18 +14,17 @@ class Game:
         self.current_mission_index = 0
         self.leader_index = 0
         self.next_action_event = Event()
-        self.gui = gui
+        
 
     def add_to_history(self, event):  # Added method to log events
+        
         self.history.append(event)
 
     def setup_players(self):
         names = ['Alice', 'Bob', 'Claire', 'Dave', 'Ed']  # Add more names if needed
         roles = ['spy'] * NUM_SPIES + ['good'] * NUM_RESISTANCE
         random.shuffle(roles)
-
         spy_names = []
-
         for name, role in zip(names, roles):
             player = Player(name, role)
             if role == 'spy':
@@ -36,23 +36,24 @@ class Game:
                 player.fellow_spies = [spy for spy in spy_names if spy != player.name]
             else:
                 player.fellow_spies = None
-
         # Add to history
         player_names = ", ".join(names)
         self.add_to_history(f"Game start - Players: {player_names}")
 
 
+
     def play_round(self):
-        for player in self.players:
-            player.gui.clear_all()
+        self.clear_player_guis()
         print(f"\n START ROUND {self.current_mission_index+1} \n")
         MAX_VOTE_ATTEMPTS = 5
         vote_attempts = 0
-
+        team_string = ""
         while vote_attempts < MAX_VOTE_ATTEMPTS:
             proposed_team, leader_reasoning = self.propose_team_with_reasoning()
             print(f"Reasoning: {leader_reasoning}")
-            self.add_to_history("Proposed team: " + ", ".join([player for player in proposed_team])) 
+            team_string = ", ".join([player for player in proposed_team])
+            self.add_to_history("Proposed team: " + team_string) 
+            self.gui.update_game_status("Proposed team: " + team_string) #temp
             self.add_to_history("Reasoning: " + leader_reasoning)
             self.pause()
             
@@ -76,17 +77,16 @@ class Game:
             
             is_approved = self.team_voting(proposed_team)
 
-            if is_approved:
+            if is_approved: 
                 break
             else:
                 self.rotate_leader()
                 vote_attempts += 1
-
+        self.gui.update_game_status("Mission team: " + team_string)
         mission_success = self.execute_mission(proposed_team)
         self.feedback(mission_success)
 
     def rotate_leader(self):
-        # Move to the next leader. If at the end of the player list, loop back to the start.
         self.leader_index = (self.leader_index + 1) % len(self.players)
 
 
@@ -127,7 +127,13 @@ class Game:
 
         approved = votes.count('pass') > len(self.players) / 2
         if(approved):
+            self.gui.update_game_status("The team is approved")
             print("\n The team is approved.")
+        else:
+            self.gui.update_game_status("The proposed team has been voted down.")
+        
+        self.pause()
+        self.clear_player_guis()
 
         return approved
     
@@ -138,12 +144,15 @@ class Game:
         sabotages = mission_votes.count('fail')
         if sabotages > 0:
             self.add_to_history(f"Mission failed: {sabotages} sabotages.")
+            self.gui.update_game_status(f"The mission fails with {sabotages} fail votes")
             print(f"The mission fails with {sabotages} fail votes \n")
         else:
             self.add_to_history("The mission was a success!")
+            self.gui.update_game_status(f"The mission has succeeded!")
             print(f"The mission passes! \n")
 
         #For some games some missions require 2 votes to fail... this doesnt cover that
+        self.pause()
 
         return sabotages == 0
 
@@ -163,6 +172,11 @@ class Game:
         
     def names_to_players(self, player_names):
         return [player for player in self.players if player.name in player_names]
+    
+    
+    def clear_player_guis(self):
+        for player in self.players:
+            player.gui.clear_all()
 
 
     def print_history(self):  # Added method to print the game history

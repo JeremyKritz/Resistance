@@ -16,7 +16,6 @@ class GameWindow:
             self.canvas.itemconfig(self.rectangle, fill='green' if outcome == 'pass' else 'red')
 
     def __init__(self):
-        self.game = Game(gui=self)
         self.root = tk.Tk()
         self.root.title("Resistance Game Visualization")
 
@@ -24,13 +23,12 @@ class GameWindow:
         self.status_bar = ttk.Label(self.root, text="Game Status: ", font=("Arial", 16, "bold"), relief=tk.SUNKEN, anchor=tk.W)
         self.status_bar.pack(fill=tk.X, pady=10)
 
-        self.canvas = tk.Canvas(self.root, bg='white', width=800, height=150)  # Adjusted height for canvas
-        self.canvas.pack(pady=20)  # Separate canvas from status bar and player units
-
         # Create Player Elements:
         self.player_units = []
         frame = ttk.Frame(self.root)  # frame is packed inside root, not inside canvas
         frame.pack(pady=20)  # Adjust padding for better separation
+
+        self.game = Game(gui=self)
 
         for player in self.game.players:
             player_unit = PlayerUnit(frame, player)
@@ -38,10 +36,14 @@ class GameWindow:
             self.player_units.append(player_unit)
             player.gui = player_unit
 
+        # Now, create and pack the canvas containing mission elements.
+        self.canvas = tk.Canvas(self.root, bg='white', width=400, height=150)  # Adjusted height for canvas
+        self.canvas.pack(pady=20)  # Separate canvas from status bar and player units
+
         # Create Mission Elements:
         self.mission_elements = []
         for idx, _ in enumerate(MISSIONS):
-            self.mission_elements.append(self.MissionElement(self.canvas, 50 + idx*40, 50))  # Centered y-coordinate inside canvas
+            self.mission_elements.append(self.MissionElement(self.canvas, 50 + idx*40, 60))
 
         self.next_action_button = tk.Button(self.root, text="Next Action", command=self.next_action)
         self.next_action_button.pack(pady=10)
@@ -52,7 +54,7 @@ class GameWindow:
 
     def update_game_status(self, status):
         """ Update the game status on the status bar """
-        self.status_bar["text"] = f"Game Status: {status}"
+        self.status_bar["text"] = f"                 {status}"
 
     def update_mission(self, idx, outcome):
         print("hmm")
