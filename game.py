@@ -53,8 +53,9 @@ class Game:
             print(f"Reasoning: {leader_reasoning}")
             team_string = ", ".join([player for player in proposed_team])
             self.add_to_history("Proposed team: " + team_string) 
-            self.gui.update_game_status("Proposed team: " + team_string) #temp
+            self.gui.update_proposed_team(proposed_team) #temp
             self.add_to_history("Reasoning: " + leader_reasoning)
+            self.gui.update_game_status("A team has been proposed") 
             self.pause()
             
             if vote_attempts == MAX_VOTE_ATTEMPTS - 1:  # If this is the 5th vote attempt, auto-approve
@@ -62,17 +63,21 @@ class Game:
                 break
 
             # Open Discussion
+            self.gui.update_game_status("Discussion phase") 
             accusations = self.open_discussion(proposed_team)
             print(accusations)
             self.pause()
+            self.clear_player_guis() 
 
             # Response
             for target in accusations:
                 for player in self.players:
                     if player.name == target:
+                        self.gui.update_game_status(f"{player.name} is under suspicion")
                         response = player.respond(self.history)
                         self.add_to_history(f"{player.name} defense: {response}")
                         print(f"{target} responds: {response}")
+                        self.pause()
                         #break No real need for efficiency here its 5 players
             
             is_approved = self.team_voting(proposed_team)
@@ -92,6 +97,7 @@ class Game:
 
     def propose_team_with_reasoning(self):
         leader = self.players[self.leader_index]
+        self.gui.update_leader(leader.name)
         proposed_team, reasoning = leader.propose_team(self.players, MISSIONS[self.current_mission_index], self.history)
         proposed_team_names = ", ".join(str(player) for player in proposed_team)
         print(f"\n {leader.name} has proposed the team: {proposed_team_names}")

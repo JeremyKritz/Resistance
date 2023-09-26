@@ -129,6 +129,7 @@ class Player:
 
     def execute_mission(self, history):
         if not self.role == 'spy':
+            self.gui.update_vote("pass")
             return "pass"
  
         prompt = (
@@ -151,8 +152,11 @@ class Player:
 
         else:
             vote = random.choice(['pass', 'fail']) 
+            internal_reasoning = "I'm being sneaky."
 
         self.gui.update_vote(vote)
+        self.gui.update_internal_dialogue(internal_reasoning)
+
         return vote
 
 
@@ -180,6 +184,13 @@ class Player:
 
         else:
             external_reasoning = "I have done nothing wrong. Trust me."
+            if self.role == 'spy':
+                internal_reasoning = "I hope I decieved them."
+
+
+        self.gui.update_external_dialogue(external_reasoning)
+        if self.role == 'spy':
+            self.gui.update_internal_dialogue(internal_reasoning)
 
         return external_reasoning
             

@@ -18,10 +18,22 @@ class GameWindow:
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("Resistance Game Visualization")
+        self.round = 0
+
+        self.round_label = ttk.Label(self.root, text="Round: 0", font=("Arial", 16, "bold"))
+        self.round_label.pack(pady=10)
 
         # Status Bar at the top
         self.status_bar = ttk.Label(self.root, text="Game Status: ", font=("Arial", 16, "bold"), relief=tk.SUNKEN, anchor=tk.W)
         self.status_bar.pack(fill=tk.X, pady=10)
+
+        # Current Leader Label
+        self.current_leader_label = ttk.Label(self.root, text="Current Leader: None", font=("Arial", 12))
+        self.current_leader_label.pack(pady=10)
+
+        # Current Proposed Team Label
+        self.proposed_team_label = ttk.Label(self.root, text="Proposed Team: None", font=("Arial", 12))
+        self.proposed_team_label.pack(pady=10)
 
         # Create Player Elements:
         self.player_units = []
@@ -75,4 +87,15 @@ class GameWindow:
 
     def start_game(self):
         for _ in range(len(MISSIONS)):
+            self.round += 1
+            self.round_label["text"] = f"Round: {self.round}"
             self.game.play_round()
+
+    def update_leader(self, leader_name):
+        """ Update the current leader on the leader label """
+        self.current_leader_label["text"] = f"Current Leader: {leader_name}"
+
+    def update_proposed_team(self, team_list):
+        """ Update the proposed team on the proposed team label """
+        team_str = ', '.join(team_list)
+        self.proposed_team_label["text"] = f"Proposed Team: {team_str}"
