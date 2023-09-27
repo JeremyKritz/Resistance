@@ -1,11 +1,9 @@
 # player.py
 import tkinter as tk
 import random
-import openai
 from constants import *
 import json
-import re
-openai.api_key = '' #HIDE lol
+from gpt_service import GPTService
 
 class Player:
     def __init__(self, name, role, fellow_spies=None):
@@ -13,7 +11,8 @@ class Player:
         self.role = role
         self.fellow_spies = fellow_spies if fellow_spies else []
         self.gui = None 
-        self.enableGPT = False
+        self.enableGPT = True
+        self.gpt = GPTService()
 
 
     def role_context(self):
@@ -36,7 +35,7 @@ class Player:
 
         if self.enableGPT:
 
-            gpt_response = self.call_gpt(prompt)  
+            gpt_response = self.gpt.call_gpt(prompt)  
 
             parsed_data = json.loads(gpt_response)
 
@@ -79,7 +78,7 @@ class Player:
 
         if self.enableGPT:
 
-            gpt_response = self.call_gpt(prompt)  
+            gpt_response = self.gpt.call_gpt(prompt)  
 
             parsed_data = json.loads(gpt_response)
 
@@ -117,7 +116,7 @@ class Player:
 
         #Im assuming it can get the proposed team from history...
         if self.enableGPT:
-            gpt_response = self.call_gpt(prompt)
+            gpt_response = self.gpt.call_gpt(prompt)
             parsed_data = json.loads(gpt_response)
             vote = parsed_data["vote"]
         else:
@@ -142,7 +141,7 @@ class Player:
 
         #print("\n" + prompt + "\n")
         if self.enableGPT:
-            gpt_response = self.call_gpt(prompt)
+            gpt_response = self.gpt.call_gpt(prompt)
             parsed_data = json.loads(gpt_response)
 
             vote = parsed_data["vote"]
@@ -174,7 +173,7 @@ class Player:
         #print("\n" + prompt + "\n")
 
         if self.enableGPT:
-            gpt_response = self.call_gpt(prompt)
+            gpt_response = self.gpt.call_gpt(prompt)
             parsed_data = json.loads(gpt_response)
 
             external_reasoning = parsed_data["external"]
@@ -193,50 +192,7 @@ class Player:
             self.gui.update_internal_dialogue(internal_reasoning)
 
         return external_reasoning
-            
-
-    def call_gpt(self, prompt):
-        print("\n Calling GPT")
-        response = openai.Completion.create(
-            model="gpt-3.5-turbo-instruct",
-            prompt=prompt,
-            max_tokens = 700
-        )
         
-        response_text = clean_json(response.choices[0].text.strip())
-
-        try:
-            pretty_response = json.loads(response_text)
-        except Exception as e:
-            print(e)
-            print(response)
-
-        token_info = {
-            "Prompt Tokens": response.usage["prompt_tokens"],
-            "Completion Tokens": response.usage["completion_tokens"],
-            "Total Tokens": response.usage["total_tokens"]
-        }
-            
-        print("\nResponse Text:\n", pretty_response)
-        print("\nToken Usage:\n", token_info)
-        
-        #input("\n Press Enter to continue... \n ")
-        return response_text
-    
-
-def clean_json(text):
-    # Convert keys with single quotes to double quotes
-    text = re.sub(r"(\s*?{\s*?|\s*?,\s*?)(\'|\")(\w+)(\'|\")\s*?:", r'\1"\3":', text)
-
-    # Convert keys without quotes to double quotes
-    text = re.sub(r"(\s*?{\s*?|\s*?,\s*?)(\w+)\s*?:", r'\1"\2":', text)
-
-    # Convert values that are not wrapped in quotes but should be (like player names)
-    text = re.sub(r":\s*\[([\w\s,]+)\]", lambda match: ': ["' + '", "'.join(match.group(1).split(", ")) + '"]', text)
-    
-    return text
-
-
 
 """
 Memory is super vital...

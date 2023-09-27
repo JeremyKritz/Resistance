@@ -6,7 +6,7 @@ MISSIONS = [2, 3, 2, 3, 3]
 
 
     #Note GPT 4 is familiar w/ the game - so it may have learned some strats
-INITIAL_PROMPT = "You are a championship player, playing the card game 'The Resistance'."
+INITIAL_PROMPT = "You are playing the card game 'The Resistance'."
 #Need to say - you're the spy, and the other spy is...
 HISTORY_PROMPT = " Game history: \n"
 
@@ -16,7 +16,7 @@ VOTE_PROMPT = "Vote on proposed team."
 MISSION_PROMPT = "You are a spy on the mission. Vote to pass or fail."
 ACCUSED_PROMPT = "You have been called out, defend yourself."
 
-FORMAT_PROMPT = " Respond with parsable JSON, with ALL below fields:"
+FORMAT_PROMPT = " Respond with parsable JSON, with ALL below fields. Do not rename any keys:"
 TEAM_FIELD = "team: *array of team members* "
 INTERNAL_DIALOGUE_FIELD = "internal: *your plan (string)* "
 EXTERNAL_DIALOGUE_FIELD = "external: *what you tell the other players* "
