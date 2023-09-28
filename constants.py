@@ -6,17 +6,17 @@ MISSIONS = [2, 3, 2, 3, 3]
 
 
     #Note GPT 4 is familiar w/ the game - so it may have learned some strats
-INITIAL_PROMPT = "You are playing the card game 'The Resistance'."
-#Need to say - you're the spy, and the other spy is...
+INITIAL_PROMPT = "You are an agent playing the card game 'The Resistance'."
+#Need to say - you're the spy, and the other spy is... - handled in player..py
 HISTORY_PROMPT = " Game history: \n"
 
 LEADER_PROMPT = "Propose a team, explain why."
 DISCUSSION_PROMPT = "Share thoughts on proposed team. You may choose to throw suspicion on any players" #Proposed team is in history...
-VOTE_PROMPT = "Vote on proposed team."
+VOTE_PROMPT = "Vote on proposed team." #This fails most often - need more prompt eng maybe
 MISSION_PROMPT = "You are a spy on the mission. Vote to pass or fail."
 ACCUSED_PROMPT = "You have been called out, defend yourself."
 
-FORMAT_PROMPT = " Respond with parsable JSON, with ALL below fields. Do not rename any keys:"
+FORMAT_PROMPT = " Respond with parsable JSON, with ALL below fields. Do not alter or rename any keys:"
 TEAM_FIELD = "team: *array of team members* "
 INTERNAL_DIALOGUE_FIELD = "internal: *your plan (string)* "
 EXTERNAL_DIALOGUE_FIELD = "external: *what you tell the other players* "
@@ -24,7 +24,9 @@ ACCUSATION_FIELD = "suspect: *array of names, can be empty* "
 VOTE_FIELD = "vote: *pass or fail* "
 CONCISE_PROMPT = "Be as consise as possible, and ENSURE PROPER PARSABLE JSON. "
 
-
+CONDENSE_PROMPT = ("The below is a history for the game Resistance - a gpt agent needs to use it to make intelligent decisions on what to do next. " +
+    "Compress into as few tokens as possible, while keeping all relevant info. " +
+    "Return only the history with no commentary")
 
 
 # PLAYER_DESCRIPTIONS = {

@@ -35,7 +35,7 @@ class Player:
 
         if self.enableGPT:
 
-            gpt_response = self.gpt.call_gpt(prompt)  
+            gpt_response = self.gpt.call_gpt_player(prompt)  
 
             parsed_data = json.loads(gpt_response)
 
@@ -78,7 +78,7 @@ class Player:
 
         if self.enableGPT:
 
-            gpt_response = self.gpt.call_gpt(prompt)  
+            gpt_response = self.gpt.call_gpt_player(prompt)  
 
             parsed_data = json.loads(gpt_response)
 
@@ -116,7 +116,7 @@ class Player:
 
         #Im assuming it can get the proposed team from history...
         if self.enableGPT:
-            gpt_response = self.gpt.call_gpt(prompt)
+            gpt_response = self.gpt.call_gpt_player(prompt)
             parsed_data = json.loads(gpt_response)
             vote = parsed_data["vote"]
         else:
@@ -141,7 +141,7 @@ class Player:
 
         #print("\n" + prompt + "\n")
         if self.enableGPT:
-            gpt_response = self.gpt.call_gpt(prompt)
+            gpt_response = self.gpt.call_gpt_player(prompt)
             parsed_data = json.loads(gpt_response)
 
             vote = parsed_data["vote"]
@@ -173,7 +173,7 @@ class Player:
         #print("\n" + prompt + "\n")
 
         if self.enableGPT:
-            gpt_response = self.gpt.call_gpt(prompt)
+            gpt_response = self.gpt.call_gpt_player(prompt)
             parsed_data = json.loads(gpt_response)
 
             external_reasoning = parsed_data["external"]
