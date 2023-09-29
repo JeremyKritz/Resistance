@@ -6,26 +6,27 @@ MISSIONS = [2, 3, 2, 3, 3]
 
 
     #Note GPT 4 is familiar w/ the game - so it may have learned some strats
-INITIAL_PROMPT = "You are an agent playing the card game 'The Resistance'."
+SYSTEM_PROMPT_1 = "You are an agent playing the card game Resistance"
+SYSTEM_PROMPT_2 = "You must respond with JSON format, with all requested keys and no additions or alterations."
 #Need to say - you're the spy, and the other spy is... - handled in player..py
 HISTORY_PROMPT = " Game history: \n"
 
 LEADER_PROMPT = "Propose a team, explain why."
 DISCUSSION_PROMPT = "Share thoughts on proposed team. You may choose to throw suspicion on any players" #Proposed team is in history...
-VOTE_PROMPT = "Submit your vote on the proposed team." #This fails most often - need more prompt eng maybe
+VOTE_PROMPT = "Submit your vote on the proposed team." #This fails most often - need more prompt eng maybe   +1, still bad
 MISSION_PROMPT = "You are a spy on the mission. Vote to pass or fail."
 ACCUSED_PROMPT = "You have been called out, defend yourself."
 
-FORMAT_PROMPT = " Respond with parsable JSON, with ALL below fields and no added fields. Do not alter or rename any keys:"
+FORMAT_PROMPT = " KEYS: "
 TEAM_FIELD = "team: *array of team members* "
 INTERNAL_DIALOGUE_FIELD = "internal: *your plan (string)* "
 EXTERNAL_DIALOGUE_FIELD = "external: *what you tell the other players* "
-ACCUSATION_FIELD = "suspect: *array of names, can be empty* "
+ACCUSATION_FIELD = "suspect: *array of names of anyone you have specifically accused, can be empty* "
 VOTE_FIELD = "vote: *pass or fail* "
-CONCISE_PROMPT = "Be as consise as possible, and ENSURE PROPER PARSABLE JSON. "
+CONCISE_PROMPT = "END OF KEYS.  Respond consisely as possible, and remember: JSON, with all given fields. "
 
-CONDENSE_PROMPT = ("The below is a history for the game Resistance - a gpt agent needs to use it to make intelligent decisions on what to do next. " +
-    "Compress into as few tokens as possible, while keeping all relevant info. " +
+CONDENSE_SYSTEM_PROMPT = ("You will be provided with a history for the game Resistance. " +
+    "Your task is to compress into as few tokens as possible, while keeping all relevant info. " +
     "Return only the history with no commentary")
 
 

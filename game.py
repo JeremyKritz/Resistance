@@ -91,7 +91,7 @@ class Game:
                 for player in self.players:
                     if player.name == target:
                         self.gui.update_game_status(f"{player.name} is under suspicion")
-                        response = player.respond(self.get_context())
+                        response = player.respond(self.get_history())
                         self.add_to_history(f"{player.name} defense: {response}")
                         print(f"{target} responds: {response}")
                         self.pause()
@@ -116,7 +116,7 @@ class Game:
     def propose_team_with_reasoning(self):
         leader = self.players[self.leader_index]
         self.gui.update_leader(leader.name)
-        proposed_team, reasoning = leader.propose_team(self.players, MISSIONS[self.current_mission_index], self.get_context())
+        proposed_team, reasoning = leader.propose_team(self.players, MISSIONS[self.current_mission_index], self.get_history())
         proposed_team_names = ", ".join(str(player) for player in proposed_team)
         print(f"\n {leader.name} has proposed team: {proposed_team_names}")
         self.add_to_history(f"{leader.name} proposed team: {proposed_team_names}") 
@@ -129,7 +129,7 @@ class Game:
         # Loop through all players to gather their opinions on the proposed team
         for player in self.players:
             # Get the player's opinion and list of suspected players
-            opinion, suspected_players = player.open_discussion(proposed_team, self.get_context())
+            opinion, suspected_players = player.open_discussion(proposed_team, self.get_history())
             
             self.add_to_history(f"{player.name}: {opinion}")
             print(f"{player.name} says: {opinion}\n")
@@ -147,7 +147,7 @@ class Game:
 
     def team_voting(self, proposed_team):
         self.add_to_history(f"Voting phase.")
-        votes = [player.vote_on_team(proposed_team, self.get_context()) for player in self.players]
+        votes = [player.vote_on_team(self.get_history()) for player in self.players]
         for player, vote in zip(self.players, votes):
             self.add_to_history(f"{player.name} voted {vote}")
 
@@ -167,7 +167,7 @@ class Game:
     def execute_mission(self, approved_team_names):
         approved_team = self.names_to_players(approved_team_names)
         #NOTE - history is public - you can't reveal who voted what...
-        mission_votes = [player.execute_mission(self.get_context()) for player in approved_team]
+        mission_votes = [player.execute_mission(self.get_history()) for player in approved_team]
         sabotages = mission_votes.count('fail')
         if sabotages > 0:
             self.add_to_history(f"Mission failed: {sabotages} sabotages.") #Note - some versions don't reveal # of fail votes.
@@ -216,12 +216,13 @@ class Game:
 
     def condense_history(self):  # Added method to print the game history
 
-        prompt = CONDENSE_PROMPT + "  ".join(self.curr_rd_history)
-        condensed  = self.gpt.call_gpt(prompt)
+        system = CONDENSE_SYSTEM_PROMPT
+        prompt = "  ".join(self.curr_rd_history)
+        condensed  = self.gpt.call_gpt(system, prompt)
         self.prev_rds_history.append(condensed)
         self.curr_rd_history = []
 
         #make gpt call...
 
-    def get_context(self):
+    def get_history(self):
         return self.prev_rds_history + self.curr_rd_history

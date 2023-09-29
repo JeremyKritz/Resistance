@@ -15,27 +15,34 @@ class Player:
         self.gpt = GPTService()
 
 
-    def role_context(self):
+    def get_system_prompt(self):
+        role_context = f"You are {self.name}, and in the resistance."
         if self.role == 'spy':
-            return f"You are {self.name}, you are a spy. Other spies: {self.fellow_spies} "
-        return f"You are {self.name}, and in the resistance."
+            role_context =  f"You are {self.name}, you are a spy. Other spies: {self.fellow_spies} "
+        return SYSTEM_PROMPT_1 + role_context + SYSTEM_PROMPT_2
     
+    def build_prompt(self, mode, mission_size=None, history=[]):
+        base_prompt = HISTORY_PROMPT + ",".join(history) + "\n"
+        turn_specific_prompts = { #may move to contants idk
+            "propose": LEADER_PROMPT + "Mission size:" + str(mission_size) + FORMAT_PROMPT + TEAM_FIELD + EXTERNAL_DIALOGUE_FIELD,
+            "discussion": DISCUSSION_PROMPT  + FORMAT_PROMPT + ACCUSATION_FIELD + EXTERNAL_DIALOGUE_FIELD,
+            "vote": VOTE_PROMPT + FORMAT_PROMPT + VOTE_FIELD,
+            "mission": MISSION_PROMPT + FORMAT_PROMPT + VOTE_FIELD,
+            "accused": ACCUSED_PROMPT + FORMAT_PROMPT + EXTERNAL_DIALOGUE_FIELD,
+        }
+        if self.role == 'spy' and mode in ["propose", "discussion", "mission", "accused"]:
+            return base_prompt + turn_specific_prompts[mode] + INTERNAL_DIALOGUE_FIELD + CONCISE_PROMPT
+        return base_prompt + turn_specific_prompts[mode] + CONCISE_PROMPT
 
 
     def propose_team(self, players, mission_size, history):
         # Randomly selects players for the team.
+        prompt = self.build_prompt("propose", mission_size=mission_size, history=history)
 
-        prompt = (INITIAL_PROMPT + self.role_context() + HISTORY_PROMPT + ",".join(history) + "\n"
-             + LEADER_PROMPT + "Mission size:" + str(mission_size) + FORMAT_PROMPT 
-            + TEAM_FIELD  + EXTERNAL_DIALOGUE_FIELD 
-        )
-        if self.role == 'spy':
-            prompt = prompt + INTERNAL_DIALOGUE_FIELD
-        prompt = prompt + CONCISE_PROMPT
 
         if self.enableGPT:
 
-            gpt_response = self.gpt.call_gpt_player(prompt)  
+            gpt_response = self.gpt.call_gpt_player(self.get_system_prompt(), prompt)    
 
             parsed_data = json.loads(gpt_response)
 
@@ -66,23 +73,11 @@ class Player:
 
     def open_discussion(self, proposed_team, history):
 
-        prompt = (INITIAL_PROMPT + self.role_context() + HISTORY_PROMPT + ",".join(history) + "\n"
-             + DISCUSSION_PROMPT  + FORMAT_PROMPT 
-            + ACCUSATION_FIELD + EXTERNAL_DIALOGUE_FIELD 
-        )
-        if self.role == 'spy':
-            prompt = prompt + INTERNAL_DIALOGUE_FIELD
-
-        prompt = prompt + CONCISE_PROMPT
-        #print("\n" + prompt + "\n")
+        prompt = self.build_prompt("discussion", history=history)
 
         if self.enableGPT:
-
-            gpt_response = self.gpt.call_gpt_player(prompt)  
-
+            gpt_response = self.gpt.call_gpt_player(self.get_system_prompt(), prompt)    
             parsed_data = json.loads(gpt_response)
-
-            
             external_reasoning = parsed_data["external"] 
             suspected_players = parsed_data.get("suspect", [""])
             if self.role == 'spy':
@@ -103,20 +98,11 @@ class Player:
         return external_reasoning, suspected_players
 
 
-    def vote_on_team(self, proposed_team, history):
+    def vote_on_team(self, history):
         
-        prompt = (
-            INITIAL_PROMPT + self.role_context() + HISTORY_PROMPT + ",".join(history) + "\n"
-            + VOTE_PROMPT + FORMAT_PROMPT
-            + VOTE_FIELD
-        )
-
-        #print("\n" + prompt + "\n")
-
-
-        #Im assuming it can get the proposed team from history...
+        prompt = self.build_prompt("vote", history=history)
         if self.enableGPT:
-            gpt_response = self.gpt.call_gpt_player(prompt)
+            gpt_response = self.gpt.call_gpt_player(self.get_system_prompt(), prompt)  
             parsed_data = json.loads(gpt_response)
             vote = parsed_data["vote"]
         else:
@@ -131,17 +117,11 @@ class Player:
             self.gui.update_vote("pass")
             return "pass"
  
-        prompt = (
-            INITIAL_PROMPT + self.role_context() + HISTORY_PROMPT + ",".join(history) + "\n"
-            + MISSION_PROMPT + FORMAT_PROMPT
-            + VOTE_FIELD
-        )
-        prompt += INTERNAL_DIALOGUE_FIELD
-        prompt += CONCISE_PROMPT
+        prompt = self.build_prompt("accused", history=history)
 
         #print("\n" + prompt + "\n")
         if self.enableGPT:
-            gpt_response = self.gpt.call_gpt_player(prompt)
+            gpt_response = self.gpt.call_gpt_player(self.get_system_prompt(), prompt)  
             parsed_data = json.loads(gpt_response)
 
             vote = parsed_data["vote"]
@@ -161,19 +141,10 @@ class Player:
 
     def respond(self, history):
         
-        prompt = (
-            INITIAL_PROMPT + self.role_context() + HISTORY_PROMPT + ",".join(history) + "\n"
-            + ACCUSED_PROMPT + FORMAT_PROMPT
-            + EXTERNAL_DIALOGUE_FIELD
-        )
-        if self.role == 'spy':
-            prompt += INTERNAL_DIALOGUE_FIELD
-        prompt += CONCISE_PROMPT
-
-        #print("\n" + prompt + "\n")
+        prompt = self.build_prompt("discussion", history=history)
 
         if self.enableGPT:
-            gpt_response = self.gpt.call_gpt_player(prompt)
+            gpt_response = self.gpt.call_gpt_player(self.get_system_prompt(), prompt)  
             parsed_data = json.loads(gpt_response)
 
             external_reasoning = parsed_data["external"]
@@ -185,7 +156,6 @@ class Player:
             external_reasoning = "I have done nothing wrong. Trust me."
             if self.role == 'spy':
                 internal_reasoning = "I hope I decieved them."
-
 
         self.gui.update_external_dialogue(external_reasoning)
         if self.role == 'spy':

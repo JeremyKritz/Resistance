@@ -1,5 +1,6 @@
 import openai
 import json, re, datetime
+from constants import *
 openai.api_key = '' #HIDE lol
 
 class GPTService:
@@ -7,21 +8,32 @@ class GPTService:
     def __init__(self):
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         self.log_filename = f"prompt_{timestamp}.txt"
-        self.model = "gpt-3.5-turbo-instruct"
+        self.model = "gpt-3.5-turbo"
         # Create the file with just a header for now
         with open(self.log_filename, 'w') as f:
             f.write("Prompts and Responses\n")
             f.write("=====================\n\n")
 
-    def call_gpt(self, prompt):
+    def call_gpt(self, system, prompt):
         print("\n Calling GPT")
-        response = openai.Completion.create(
+        response = openai.ChatCompletion.create(
             model= self.model,
-            prompt=prompt,
+            messages=[
+            {
+            "role": "system",
+            "content": system
+            },
+            {
+            "role": "user",
+            "content": prompt
+            }
+  ],
             max_tokens = 700
+            #freq penalty? - idk might kill the json...
         )
         with open(self.log_filename, 'a') as f:
-            f.write(f"Prompt:\n{prompt}\n\n")
+            f.write(f"System Prompt:\n{system}\n\n")
+            f.write(f"USer Prompt:\n{prompt}\n\n")
             f.write(f"Response:\n{response}\n")
             f.write("\n-------------------------\n\n")
             
@@ -29,16 +41,16 @@ class GPTService:
         token_info = {"Prompt Tokens": response.usage["prompt_tokens"], "Completion Tokens": response.usage["completion_tokens"], "Total Tokens": response.usage["total_tokens"]}
         print(token_info)
 
-        return response.choices[0].text.strip()
+        return response.choices[0].message.content.strip()
 
 
 
-    def call_gpt_player(self, prompt, max_retries=1): #This one is for json responses
+    def call_gpt_player(self, system, prompt, max_retries=1): #This one is for json responses
         retries = 0
         while retries <= max_retries: #GPT 3 sometimes (rarely) doesnt return proper format
             if retries > 0:
                 prompt = prompt + " Again, ensure the response matches the requested JSON format."
-            response = self.call_gpt(prompt)
+            response = self.call_gpt(system, prompt)
             clean_json_response = self.clean_json(response)
             try:
                 pretty_response = json.loads(clean_json_response)
