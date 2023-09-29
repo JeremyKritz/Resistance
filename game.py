@@ -54,7 +54,7 @@ class Game:
                 player.fellow_spies = None
         # Add to history
         player_names = ", ".join(names)
-        self.add_to_history(f"Game start - Players: {player_names}")
+        self.add_to_history(f"Players: {player_names}")
 
 
 
@@ -138,8 +138,9 @@ class Game:
                 if suspected_player and suspected_player not in accused:  # Check if the suspected_player is not empty and not in the set yet
                     accused.append(suspected_player)
                     print(f"{suspected_player} accused")
-            self.gui.update_game_status(f"Called out as suspicious:  {suspected_players}")
+            
             self.pause()
+        self.gui.update_game_status(f"Called out as suspicious:  {suspected_players}")
         return accused   
 
 

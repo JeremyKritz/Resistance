@@ -52,6 +52,7 @@ class PlayerUnit(ttk.Frame):
 
     def update_dialogue(self, dialogue_box, text):
         dialogue_box.delete("1.0", tk.END)  # clears it...
+        self.highlight_talking()
 
         words = text.split()
         for word in words:
@@ -59,6 +60,7 @@ class PlayerUnit(ttk.Frame):
             dialogue_box.yview(tk.END)  # Auto-scroll to end
             dialogue_box.update_idletasks()  # Force an update of the GUI
             dialogue_box.after(90) 
+        self.unhighlight_talking()
 
     def update_external_dialogue(self, text):
         self.update_dialogue(self.dialogue_box, text)
@@ -76,6 +78,20 @@ class PlayerUnit(ttk.Frame):
             color = "white"
         self.vote_canvas.itemconfig(self.vote_square, fill=color)
         self.vote_status["text"] = "Vote: " + vote
+
+    def highlight_talking(self):
+        """ Highlight the player frame when they're talking """
+        if self.player.role == 'spy':
+            self.style.configure('Spy.TFrame', bordercolor='yellow')
+        else:
+            self.style.configure('Resistance.TFrame', bordercolor='yellow')
+
+    def unhighlight_talking(self):
+        """ Remove the highlight from the player frame """
+        if self.player.role == 'spy':
+            self.style.configure('Spy.TFrame', bordercolor='lightcoral')
+        else:
+            self.style.configure('Resistance.TFrame', bordercolor='lightblue')
 
     def clear_all(self):
         # Clear the external dialogue

@@ -28,11 +28,11 @@ class GameWindow:
         self.status_bar.pack(fill=tk.X, pady=10)
 
         # Current Leader Label
-        self.current_leader_label = ttk.Label(self.root, text="Current Leader: None", font=("Arial", 12))
+        self.current_leader_label = ttk.Label(self.root, text="Current Leader: None", font=("Arial", 16, "bold"))
         self.current_leader_label.pack(pady=10)
 
         # Current Proposed Team Label
-        self.proposed_team_label = ttk.Label(self.root, text="Proposed Team: None", font=("Arial", 12))
+        self.proposed_team_label = ttk.Label(self.root, text="Proposed Team: None", font=("Arial", 16, "bold"))
         self.proposed_team_label.pack(pady=10)
 
         # Create Player Elements:
