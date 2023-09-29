@@ -1,5 +1,5 @@
 import openai
-import json, re, datetime
+import json, re, datetime, time
 from constants import *
 openai.api_key = '' #HIDE lol
 
@@ -49,6 +49,7 @@ class GPTService:
         retries = 0
         while retries <= max_retries: #GPT 3 sometimes (rarely) doesnt return proper format
             if retries > 0:
+                time.sleep(.6)
                 prompt = prompt + " Again, ensure the response matches the requested JSON format."
             response = self.call_gpt(system, prompt)
             clean_json_response = self.clean_json(response)

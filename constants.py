@@ -12,18 +12,20 @@ SYSTEM_PROMPT_2 = "You must respond with JSON format, with all requested keys an
 HISTORY_PROMPT = " Game history: \n"
 
 LEADER_PROMPT = "Propose a team, explain why."
-DISCUSSION_PROMPT = "Share thoughts on proposed team. You may choose to throw suspicion on any players" #Proposed team is in history...
-VOTE_PROMPT = "Submit your vote on the proposed team." #This fails most often - need more prompt eng maybe   +1, still bad
+DISCUSSION_PROMPT = "Share thoughts on proposed team. You may choose to throw suspicion on any players. " #Proposed team is in history...
+VOTE_PROMPT = "Submit your vote on the proposed team. (Response must have the vote key)" 
 MISSION_PROMPT = "You are a spy on the mission. Vote to pass or fail."
 ACCUSED_PROMPT = "You have been called out, defend yourself."
+NON_REPEAT_PROMPT = "Try not to repeat other players." #Hmm
+SPY_INTERNAL_PROMPT = "Give both external dialogue - what you tell the team, and internal dialogue - your real plan."
 
 FORMAT_PROMPT = " KEYS: "
-TEAM_FIELD = "team: *array of team members* "
-INTERNAL_DIALOGUE_FIELD = "internal: *your plan (string)* "
-EXTERNAL_DIALOGUE_FIELD = "external: *what you tell the other players* "
-ACCUSATION_FIELD = "suspect: *array of names of anyone you have specifically accused, can be empty* "
-VOTE_FIELD = "vote: *pass or fail* "
-CONCISE_PROMPT = "END OF KEYS.  Respond consisely as possible, and remember: JSON, with all given fields. "
+TEAM_FIELD = "team: *(array of strings) names of team members* "
+INTERNAL_DIALOGUE_FIELD = "internal: *(string) your plan * "
+EXTERNAL_DIALOGUE_FIELD = "external: *(string) what you tell the other players* "
+ACCUSATION_FIELD = "suspect: *(array of strings) names of anyone you have specifically accused, can be empty* "
+VOTE_FIELD = "vote: *(string) pass or fail* "
+CONCISE_PROMPT = "END OF KEYS.  Respond consisely as possible, and remember: JSON, with all given fields in the requested format.. "
 
 CONDENSE_SYSTEM_PROMPT = ("You will be provided with a history for the game Resistance. " +
     "Your task is to compress into as few tokens as possible, while keeping all relevant info. " +

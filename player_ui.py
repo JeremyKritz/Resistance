@@ -1,10 +1,13 @@
 import tkinter as tk
 from tkinter import ttk, scrolledtext
+from threading import Event
+import time
 
 class PlayerUnit(ttk.Frame):
     def __init__(self, parent, player, *args, **kwargs):
         # Create a style
         self.style = ttk.Style()
+        self.dialogue_finished_event = Event()
 
         if player.role == 'spy':
             self.style.configure('Spy.TFrame', background='lightcoral')
@@ -14,6 +17,7 @@ class PlayerUnit(ttk.Frame):
             super().__init__(parent, style='Resistance.TFrame', *args, **kwargs)
 
         self.player = player
+        self.updating_external = False
 
         # Frame style
         self['borderwidth'] = 2
@@ -50,23 +54,34 @@ class PlayerUnit(ttk.Frame):
             self.internal_dialogue_box.grid(row=6, column=0, padx=5, pady=5)
 
 
-    def update_dialogue(self, dialogue_box, text):
-        dialogue_box.delete("1.0", tk.END)  # clears it...
+    def insert_word(self, dialogue_box, words, index=0, callback=None):
+        if index < len(words):
+            dialogue_box.insert(tk.END, words[index] + " ")
+            dialogue_box.yview(tk.END)  # Auto-scroll to the latest inserted word
+            dialogue_box.after(90, self.insert_word, dialogue_box, words, index+1, callback) #ms
+        else:
+            self.unhighlight_talking()
+            
+            if callback:
+                callback()
+
+    def update_dialogue_box(self, dialogue_box, text, callback=None):
+        """Updates the provided dialogue_box with the given text.""" 
+        # Clear the dialogue box
+        dialogue_box.delete("1.0", tk.END)  
         self.highlight_talking()
-
         words = text.split()
-        for word in words:
-            dialogue_box.insert(tk.END, word + " ")
-            dialogue_box.yview(tk.END)  # Auto-scroll to end
-            dialogue_box.update_idletasks()  # Force an update of the GUI
-            dialogue_box.after(90) 
-        self.unhighlight_talking()
+        self.insert_word(dialogue_box, words, callback=callback)
 
-    def update_external_dialogue(self, text):
-        self.update_dialogue(self.dialogue_box, text)
-
-    def update_internal_dialogue(self, text):
-        self.update_dialogue(self.internal_dialogue_box, text)
+    def update_dialogue(self, external_text=None, internal_text=None):     
+        def after_external_update():
+            """Callback function to update internal dialogue after external."""
+            if internal_text:
+                self.update_dialogue_box(self.internal_dialogue_box, internal_text)
+        if external_text:
+            self.update_dialogue_box(self.dialogue_box, external_text, callback=after_external_update)
+        elif internal_text:
+            self.update_dialogue_box(self.internal_dialogue_box, internal_text)
 
 
     def update_vote(self, vote):

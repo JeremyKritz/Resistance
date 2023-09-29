@@ -25,19 +25,20 @@ class Player:
         base_prompt = HISTORY_PROMPT + ",".join(history) + "\n"
         turn_specific_prompts = { #may move to contants idk
             "propose": LEADER_PROMPT + "Mission size:" + str(mission_size) + FORMAT_PROMPT + TEAM_FIELD + EXTERNAL_DIALOGUE_FIELD,
-            "discussion": DISCUSSION_PROMPT  + FORMAT_PROMPT + ACCUSATION_FIELD + EXTERNAL_DIALOGUE_FIELD,
+            "discussion": DISCUSSION_PROMPT + NON_REPEAT_PROMPT + FORMAT_PROMPT + ACCUSATION_FIELD + EXTERNAL_DIALOGUE_FIELD,
             "vote": VOTE_PROMPT + FORMAT_PROMPT + VOTE_FIELD,
             "mission": MISSION_PROMPT + FORMAT_PROMPT + VOTE_FIELD,
             "accused": ACCUSED_PROMPT + FORMAT_PROMPT + EXTERNAL_DIALOGUE_FIELD,
         }
         if self.role == 'spy' and mode in ["propose", "discussion", "mission", "accused"]:
-            return base_prompt + turn_specific_prompts[mode] + INTERNAL_DIALOGUE_FIELD + CONCISE_PROMPT
+            return base_prompt + turn_specific_prompts[mode] + SPY_INTERNAL_PROMPT + INTERNAL_DIALOGUE_FIELD + CONCISE_PROMPT
         return base_prompt + turn_specific_prompts[mode] + CONCISE_PROMPT
 
 
     def propose_team(self, players, mission_size, history):
         # Randomly selects players for the team.
         prompt = self.build_prompt("propose", mission_size=mission_size, history=history)
+        internal_reasoning = None
 
 
         if self.enableGPT:
@@ -62,9 +63,7 @@ class Player:
 
         print("proposed a team")
 
-        self.gui.update_external_dialogue(external_reasoning)
-        if self.role == 'spy':
-            self.gui.update_internal_dialogue(internal_reasoning)
+        self.gui.update_dialogue(external_reasoning, internal_reasoning)
 
 
         return team, external_reasoning
@@ -74,6 +73,7 @@ class Player:
     def open_discussion(self, proposed_team, history):
 
         prompt = self.build_prompt("discussion", history=history)
+        internal_reasoning = None
 
         if self.enableGPT:
             gpt_response = self.gpt.call_gpt_player(self.get_system_prompt(), prompt)    
@@ -91,9 +91,8 @@ class Player:
             if self.role == 'spy':
                 internal_reasoning = "I am evil"
 
-        self.gui.update_external_dialogue(external_reasoning)
-        if self.role == 'spy':
-            self.gui.update_internal_dialogue(internal_reasoning)
+        self.gui.update_dialogue(external_reasoning, internal_reasoning)
+
 
         return external_reasoning, suspected_players
 
@@ -134,7 +133,7 @@ class Player:
             internal_reasoning = "I'm being sneaky."
 
         self.gui.update_vote(vote)
-        self.gui.update_internal_dialogue(internal_reasoning)
+        self.gui.update_dialogue(None, internal_reasoning)
 
         return vote
 
@@ -142,6 +141,7 @@ class Player:
     def respond(self, history):
         
         prompt = self.build_prompt("discussion", history=history)
+        internal_reasoning = None
 
         if self.enableGPT:
             gpt_response = self.gpt.call_gpt_player(self.get_system_prompt(), prompt)  
@@ -157,9 +157,7 @@ class Player:
             if self.role == 'spy':
                 internal_reasoning = "I hope I decieved them."
 
-        self.gui.update_external_dialogue(external_reasoning)
-        if self.role == 'spy':
-            self.gui.update_internal_dialogue(internal_reasoning)
+        self.gui.update_dialogue(external_reasoning, internal_reasoning)
 
         return external_reasoning
 
