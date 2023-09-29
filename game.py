@@ -31,7 +31,7 @@ class Game:
     def add_to_history(self, event):  # Added method to log events
         with open(self.log_filename, 'a') as f:
             f.write(f"{event}")
-            f.write("\n-------------------------\n")
+            f.write("\n     ----------\n")
         
         self.curr_rd_history.append(event)
         self.full_history.append(event)
@@ -88,14 +88,13 @@ class Game:
 
             # Response
             for target in accusations:
-                for player in self.players:
+                for player in self.players: #No real need for efficiency here its 5 players
                     if player.name == target:
                         self.gui.update_game_status(f"{player.name} is under suspicion")
                         response = player.respond(self.get_history())
                         self.add_to_history(f"{player.name} defense: {response}")
                         print(f"{target} responds: {response}")
                         self.pause()
-                        #break No real need for efficiency here its 5 players
             
             is_approved = self.team_voting(proposed_team)
 
@@ -124,7 +123,7 @@ class Game:
 
     def open_discussion(self, proposed_team):
         accused = []
-        self.add_to_history(f"Discussion phase.")
+        self.add_to_history(f"DISCUSSION PHASE")
 
         # Loop through all players to gather their opinions on the proposed team
         for player in self.players:
@@ -146,7 +145,7 @@ class Game:
 
 
     def team_voting(self, proposed_team):
-        self.add_to_history(f"Voting phase.")
+        self.add_to_history(f"VOTING PHASE")
         votes = [player.vote_on_team(self.get_history()) for player in self.players]
         for player, vote in zip(self.players, votes):
             self.add_to_history(f"{player.name} voted {vote}")
@@ -165,6 +164,7 @@ class Game:
     
 
     def execute_mission(self, approved_team_names):
+        print("Begin execute mission")
         approved_team = self.names_to_players(approved_team_names)
         #NOTE - history is public - you can't reveal who voted what...
         mission_votes = [player.execute_mission(self.get_history()) for player in approved_team]

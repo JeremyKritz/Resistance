@@ -71,7 +71,6 @@ class Player:
 
 
     def open_discussion(self, proposed_team, history):
-
         prompt = self.build_prompt("discussion", history=history)
         internal_reasoning = None
 
@@ -97,8 +96,7 @@ class Player:
         return external_reasoning, suspected_players
 
 
-    def vote_on_team(self, history):
-        
+    def vote_on_team(self, history):   
         prompt = self.build_prompt("vote", history=history)
         if self.enableGPT:
             gpt_response = self.gpt.call_gpt_player(self.get_system_prompt(), prompt)  
@@ -116,7 +114,7 @@ class Player:
             self.gui.update_vote("pass")
             return "pass"
  
-        prompt = self.build_prompt("accused", history=history)
+        prompt = self.build_prompt("mission", history=history)
 
         #print("\n" + prompt + "\n")
         if self.enableGPT:
@@ -140,7 +138,7 @@ class Player:
 
     def respond(self, history):
         
-        prompt = self.build_prompt("discussion", history=history)
+        prompt = self.build_prompt("accused", history=history)
         internal_reasoning = None
 
         if self.enableGPT:

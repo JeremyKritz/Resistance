@@ -33,9 +33,11 @@ class GPTService:
         )
         with open(self.log_filename, 'a') as f:
             f.write(f"System Prompt:\n{system}\n\n")
-            f.write(f"USer Prompt:\n{prompt}\n\n")
+            f.write("\n    ------------\n\n")
+            f.write(f"User Prompt:\n{prompt}\n\n")
+            f.write("\n    ------------\n\n")
             f.write(f"Response:\n{response}\n")
-            f.write("\n-------------------------\n\n")
+            f.write("\n==========================\n\n")
             
         
         token_info = {"Prompt Tokens": response.usage["prompt_tokens"], "Completion Tokens": response.usage["completion_tokens"], "Total Tokens": response.usage["total_tokens"]}

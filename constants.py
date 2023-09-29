@@ -6,16 +6,16 @@ MISSIONS = [2, 3, 2, 3, 3]
 
 
     #Note GPT 4 is familiar w/ the game - so it may have learned some strats
-SYSTEM_PROMPT_1 = "You are an agent playing the card game Resistance"
+SYSTEM_PROMPT_1 = "You are an agent playing the card game Resistance "
 SYSTEM_PROMPT_2 = "You must respond with JSON format, with all requested keys and no additions or alterations."
 #Need to say - you're the spy, and the other spy is... - handled in player..py
 HISTORY_PROMPT = " Game history: \n"
 
-LEADER_PROMPT = "Propose a team, explain why."
-DISCUSSION_PROMPT = "Share thoughts on proposed team. You may choose to throw suspicion on any players. " #Proposed team is in history...
-VOTE_PROMPT = "Submit your vote on the proposed team. (Response must have the vote key)" 
-MISSION_PROMPT = "You are a spy on the mission. Vote to pass or fail."
-ACCUSED_PROMPT = "You have been called out, defend yourself."
+LEADER_PROMPT = "TASK: Propose a team, explain why."
+DISCUSSION_PROMPT = "TASK: Share thoughts on proposed team. You may choose to throw suspicion on any players. " #Proposed team is in history...
+VOTE_PROMPT = "TASK: Submit your vote on the proposed team. (Response must have the vote key)" 
+MISSION_PROMPT = "TASK: You are a spy on the mission. Vote to pass or fail."
+ACCUSED_PROMPT = "TASK: You have been called out, defend yourself."
 NON_REPEAT_PROMPT = "Try not to repeat other players." #Hmm
 SPY_INTERNAL_PROMPT = "Give both external dialogue - what you tell the team, and internal dialogue - your real plan."
 
