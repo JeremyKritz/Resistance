@@ -12,11 +12,11 @@ HISTORY_PROMPT = " Game history: \n"
 
 LEADER_PROMPT = "Propose a team, explain why."
 DISCUSSION_PROMPT = "Share thoughts on proposed team. You may choose to throw suspicion on any players" #Proposed team is in history...
-VOTE_PROMPT = "Vote on proposed team." #This fails most often - need more prompt eng maybe
+VOTE_PROMPT = "Submit your vote on the proposed team." #This fails most often - need more prompt eng maybe
 MISSION_PROMPT = "You are a spy on the mission. Vote to pass or fail."
 ACCUSED_PROMPT = "You have been called out, defend yourself."
 
-FORMAT_PROMPT = " Respond with parsable JSON, with ALL below fields. Do not alter or rename any keys:"
+FORMAT_PROMPT = " Respond with parsable JSON, with ALL below fields and no added fields. Do not alter or rename any keys:"
 TEAM_FIELD = "team: *array of team members* "
 INTERNAL_DIALOGUE_FIELD = "internal: *your plan (string)* "
 EXTERNAL_DIALOGUE_FIELD = "external: *what you tell the other players* "

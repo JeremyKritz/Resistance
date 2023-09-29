@@ -33,17 +33,26 @@ class GPTService:
 
 
 
-    def call_gpt_player(self, prompt): #This one is for json responses
-        response = self.call_gpt(prompt)
-        clean_json_response = self.clean_json(response)
-        try:
-            pretty_response = json.loads(clean_json_response)
-            print("\nResponse Text:\n", pretty_response)
-        except Exception as e:
-            print(e)
-            print(response)
-        return clean_json_response
-    #Consider adding re-dos ...
+    def call_gpt_player(self, prompt, max_retries=1): #This one is for json responses
+        retries = 0
+        while retries <= max_retries: #GPT 3 sometimes (rarely) doesnt return proper format
+            if retries > 0:
+                prompt = prompt + " Again, ensure the response matches the requested JSON format."
+            response = self.call_gpt(prompt)
+            clean_json_response = self.clean_json(response)
+            try:
+                pretty_response = json.loads(clean_json_response)
+                print("\nResponse Text:\n", pretty_response)
+                return clean_json_response
+            except Exception as e:
+                print(f"Attempt {retries+1} failed:")
+                print(e)
+                print(response)
+                retries += 1
+        
+        print(f"Failed to get a valid JSON response after {max_retries} attempts.")
+        return None
+
     
     
 

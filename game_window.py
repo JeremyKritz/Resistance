@@ -37,31 +37,31 @@ class GameWindow:
 
         # Create Player Elements:
         self.player_units = []
-        frame = ttk.Frame(self.root)  # frame is packed inside root, not inside canvas
-        frame.pack(pady=20)  # Adjust padding for better separation
+        frame = ttk.Frame(self.root)
+        frame.pack(pady=10)
 
         self.game = Game(gui=self)
 
         for player in self.game.players:
             player_unit = PlayerUnit(frame, player)
-            player_unit.pack(side=tk.LEFT, padx=10, pady=10)
+            player_unit.pack(side=tk.LEFT, padx=5, pady=5)
             self.player_units.append(player_unit)
             player.gui = player_unit
 
         # Now, create and pack the canvas containing mission elements.
-        self.canvas = tk.Canvas(self.root, bg='white', width=400, height=150)  # Adjusted height for canvas
-        self.canvas.pack(pady=20)  # Separate canvas from status bar and player units
+        self.canvas = tk.Canvas(self.root, bg='white', width=350, height=100)
+        self.canvas.pack(pady=10)
 
         # Create Mission Elements:
         self.mission_elements = []
         for idx, _ in enumerate(MISSIONS):
-            self.mission_elements.append(self.MissionElement(self.canvas, 50 + idx*40, 60))
+            self.mission_elements.append(self.MissionElement(self.canvas, 40 + idx*35, 50))
 
         self.next_action_button = tk.Button(self.root, text="Next Action", command=self.next_action)
-        self.next_action_button.pack(pady=10)
+        self.next_action_button.pack(pady=5)
         self.next_action_received = False
         self.start_game_button = tk.Button(self.root, text="Start Game", command=self.start_game)
-        self.start_game_button.pack(pady=10)
+        self.start_game_button.pack(pady=5)
 
 
     def update_game_status(self, status):

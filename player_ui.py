@@ -3,12 +3,21 @@ from tkinter import ttk, scrolledtext
 
 class PlayerUnit(ttk.Frame):
     def __init__(self, parent, player, *args, **kwargs):
-        super().__init__(parent, *args, **kwargs)
+        # Create a style
+        self.style = ttk.Style()
+
+        if player.role == 'spy':
+            self.style.configure('Spy.TFrame', background='lightcoral')
+            super().__init__(parent, style='Spy.TFrame', *args, **kwargs)
+        else:
+            self.style.configure('Resistance.TFrame', background='lightblue')
+            super().__init__(parent, style='Resistance.TFrame', *args, **kwargs)
+
         self.player = player
 
         # Frame style
         self['borderwidth'] = 2
-        self['relief'] = "ridge"  # This gives a slightly raised effect
+        self['relief'] = "ridge"
         self['padding'] = (10, 10)
 
         # Player's Name Label with bold font
@@ -21,7 +30,7 @@ class PlayerUnit(ttk.Frame):
 
         # External Dialogue ScrolledText with a title
         ttk.Label(self, text="External Dialogue", font=("Arial", 12, "italic")).grid(row=2, column=0, sticky=tk.W, padx=5, pady=5)
-        self.dialogue_box = scrolledtext.ScrolledText(self, width=25, height=5, wrap=tk.WORD)
+        self.dialogue_box = scrolledtext.ScrolledText(self, width=30, height=10, wrap=tk.WORD)
         self.dialogue_box.grid(row=3, column=0, padx=5, pady=5)
 
         # Vote Status Label
@@ -37,18 +46,25 @@ class PlayerUnit(ttk.Frame):
         # Internal Dialogue ScrolledText (Only for Spies) with a title
         if self.player.role == 'spy':
             ttk.Label(self, text="Internal Dialogue", font=("Arial", 12, "italic")).grid(row=5, column=0, sticky=tk.W, padx=5, pady=5)
-            self.internal_dialogue_box = scrolledtext.ScrolledText(self, width=25, height=5, wrap=tk.WORD)
+            self.internal_dialogue_box = scrolledtext.ScrolledText(self, width=30, height=10, wrap=tk.WORD)  # Reduce width
             self.internal_dialogue_box.grid(row=6, column=0, padx=5, pady=5)
 
+
+    def update_dialogue(self, dialogue_box, text):
+        dialogue_box.delete("1.0", tk.END)  # clears it...
+
+        words = text.split()
+        for word in words:
+            dialogue_box.insert(tk.END, word + " ")
+            dialogue_box.yview(tk.END)  # Auto-scroll to end
+            dialogue_box.update_idletasks()  # Force an update of the GUI
+            dialogue_box.after(90) 
+
     def update_external_dialogue(self, text):
-        self.dialogue_box.delete("1.0", tk.END) #clears it...
-        self.dialogue_box.insert(tk.END, text)
-        self.dialogue_box.yview(tk.END) # Auto-scroll to end
-    
+        self.update_dialogue(self.dialogue_box, text)
+
     def update_internal_dialogue(self, text):
-        self.internal_dialogue_box.delete("1.0", tk.END) #clears it...
-        self.internal_dialogue_box.insert(tk.END, text)
-        self.internal_dialogue_box.yview(tk.END) # Auto-scroll to end
+        self.update_dialogue(self.internal_dialogue_box, text)
 
 
     def update_vote(self, vote):

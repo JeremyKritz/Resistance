@@ -192,7 +192,6 @@ class Player:
             self.gui.update_internal_dialogue(internal_reasoning)
 
         return external_reasoning
-        
 
 """
 Memory is super vital...
