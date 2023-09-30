@@ -170,11 +170,11 @@ class Game:
         mission_votes = [player.execute_mission(self.get_history()) for player in approved_team]
         sabotages = mission_votes.count('fail')
         if sabotages > 0:
-            self.add_to_history(f"Mission failed: {sabotages} sabotages.") #Note - some versions don't reveal # of fail votes.
+            self.add_to_history(f"Mission failed: {sabotages} sabotages. Spies win the round.") #Note - some versions don't reveal # of fail votes.
             self.gui.update_game_status(f"The mission fails with {sabotages} fail votes")
             print(f"The mission fails with {sabotages} fail votes \n")
         else:
-            self.add_to_history("The mission was a success!")
+            self.add_to_history(f"Mission Passes - Resistance wins the round.")
             self.gui.update_game_status(f"The mission has succeeded!")
             print(f"The mission passes! \n")
 

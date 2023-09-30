@@ -18,7 +18,7 @@ class Player:
     def get_system_prompt(self):
         role_context = f"You are {self.name}, in the resistance."
         if self.role == 'spy':
-            role_context =  f"You are {self.name}, you are a spy. The other spy is {self.fellow_spies[0]} "
+            role_context =  f"You are {self.name}, you are a spy. The other spy is {self.fellow_spies[0]}. {SPY_REMINDER}"
         return SYSTEM_PROMPT_1 + role_context + SYSTEM_PROMPT_2
     
     def build_prompt(self, mode, mission_size=None, history=[]):
