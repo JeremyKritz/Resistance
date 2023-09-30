@@ -8,7 +8,7 @@ class GPTService:
     def __init__(self):
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         self.log_filename = f"prompt_{timestamp}.txt"
-        self.model = "gpt-3.5-turbo"
+        self.model = "gpt-4"
         # Create the file with just a header for now
         with open(self.log_filename, 'w') as f:
             f.write("Prompts and Responses\n")
