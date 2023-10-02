@@ -151,6 +151,7 @@ class Game:
         votes = [player.vote_on_team(self.get_history()) for player in self.players]
         for player, vote in zip(self.players, votes):
             self.add_to_history(f"{player.name} voted {vote}")
+            self.pause() #required to not get rate-limited!
 
         approved = votes.count('pass') > len(self.players) / 2
         if(approved):

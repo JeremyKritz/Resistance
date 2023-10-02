@@ -30,15 +30,15 @@ class Player:
 
 
         turn_specific_prompts = { #may move to contants idk
-            "propose": LEADER_PROMPT + "Mission size:" + str(mission_size) + FORMAT_PROMPT + TEAM_FIELD + EXTERNAL_DIALOGUE_FIELD,
-            "discussion": DISCUSSION_PROMPT + NON_REPEAT_PROMPT + FORMAT_PROMPT + ACCUSATION_FIELD + EXTERNAL_DIALOGUE_FIELD,
+            "propose": LEADER_PROMPT + "Mission size:" + str(mission_size) + CONCISE_PROMPT + FORMAT_PROMPT + TEAM_FIELD + EXTERNAL_DIALOGUE_FIELD,
+            "discussion": DISCUSSION_PROMPT + CONCISE_PROMPT + FORMAT_PROMPT + ACCUSATION_FIELD + EXTERNAL_DIALOGUE_FIELD,
             "vote": VOTE_PROMPT + FORMAT_PROMPT + VOTE_FIELD,
             "mission": MISSION_PROMPT + FORMAT_PROMPT + VOTE_FIELD,
-            "accused": ACCUSED_PROMPT + FORMAT_PROMPT + EXTERNAL_DIALOGUE_FIELD,
+            "accused": ACCUSED_PROMPT + CONCISE_PROMPT + FORMAT_PROMPT + EXTERNAL_DIALOGUE_FIELD,
         }
         if self.role == 'spy' and mode in ["propose", "discussion", "mission", "accused"]:
-            return base_prompt + turn_specific_prompts[mode] + SPY_INTERNAL_PROMPT + INTERNAL_DIALOGUE_FIELD + CONCISE_PROMPT
-        return base_prompt + turn_specific_prompts[mode] + CONCISE_PROMPT
+            return base_prompt + turn_specific_prompts[mode] + SPY_INTERNAL_PROMPT + INTERNAL_DIALOGUE_FIELD + CLOSE_PROMPT
+        return base_prompt + turn_specific_prompts[mode] + CLOSE_PROMPT
 
 
     def propose_team(self, players, mission_size, history):
