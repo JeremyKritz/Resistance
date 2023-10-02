@@ -54,7 +54,7 @@ class Game:
                 player.fellow_spies = None
         # Add to history
         player_names = ", ".join(names)
-        self.add_to_history(f"Players: {player_names}")
+        self.add_to_history(f"Players: {player_names} (turns rotate based on this order)")
 
 
 
@@ -126,7 +126,9 @@ class Game:
         self.add_to_history(f"DISCUSSION PHASE")
 
         # Loop through all players to gather their opinions on the proposed team
-        for player in self.players:
+        for index, player in enumerate(self.players):
+            if index == self.leader_index: #Leader won't weigh on own proposal now.
+                continue
             # Get the player's opinion and list of suspected players
             opinion, suspected_players = player.open_discussion(proposed_team, self.get_history())
             

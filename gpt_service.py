@@ -4,11 +4,15 @@ from constants import *
 openai.api_key = '' #HIDE lol
 
 class GPTService:
+    RATE_LIMIT = 10000 # tokens per minute
+    RATE_RESET_TIME = 60 # seconds (1 minute)
     
     def __init__(self):
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         self.log_filename = f"prompt_{timestamp}.txt"
         self.model = "gpt-4"
+        self.tokens_used = 0
+        self.last_request_time = 0
         # Create the file with just a header for now
         with open(self.log_filename, 'w') as f:
             f.write("Prompts and Responses\n")
@@ -16,6 +20,7 @@ class GPTService:
 
     def call_gpt(self, system, prompt):
         print("\n Calling GPT")
+        self._rate_limit_check()
         response = openai.ChatCompletion.create(
             model= self.model,
             messages=[
@@ -42,6 +47,9 @@ class GPTService:
         
         token_info = {"Prompt Tokens": response.usage["prompt_tokens"], "Completion Tokens": response.usage["completion_tokens"], "Total Tokens": response.usage["total_tokens"]}
         print(token_info)
+        self.tokens_used += response.usage["total_tokens"]
+        self.last_request_time = time.time()
+        
 
         return response.choices[0].message.content.strip()
 
@@ -90,3 +98,16 @@ class GPTService:
         text = re.sub(r":\s*\[([\w\s,]+)\]", lambda match: ': ["' + '", "'.join(match.group(1).split(", ")) + '"]', text)
         
         return text
+    
+    def _rate_limit_check(self):
+        if self.last_request_time:
+            time_since_last_request = time.time() - self.last_request_time
+            if time_since_last_request >= self.RATE_RESET_TIME:
+                # Reset the tokens used count after 1 minute
+                self.tokens_used = 0
+            elif self.tokens_used >= (self.RATE_LIMIT - 3000):
+                # If tokens used is close to rate limit, wait for the reset time
+                sleep_time = self.RATE_RESET_TIME - time_since_last_request
+                print(f"Approaching rate limit. Sleeping for {sleep_time:.2f} seconds...")
+                time.sleep(sleep_time)
+                self.tokens_used = 0 # Reset after sleep

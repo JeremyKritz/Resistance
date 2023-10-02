@@ -13,6 +13,7 @@ class Player:
         self.gui = None 
         self.enableGPT = True
         self.gpt = GPTService()
+        self.internal_plan = "" #Consider having spies remember their own plans...
 
 
     def get_system_prompt(self):
@@ -23,6 +24,11 @@ class Player:
     
     def build_prompt(self, mode, mission_size=None, history=[]):
         base_prompt = HISTORY_PROMPT + ",".join(history) + "\n"
+
+        if self.role == 'spy' and mode in ["vote", "mission"]:
+            base_prompt += "Your most recent plan for this round was " + self.internal_plan + "\n"
+
+
         turn_specific_prompts = { #may move to contants idk
             "propose": LEADER_PROMPT + "Mission size:" + str(mission_size) + FORMAT_PROMPT + TEAM_FIELD + EXTERNAL_DIALOGUE_FIELD,
             "discussion": DISCUSSION_PROMPT + NON_REPEAT_PROMPT + FORMAT_PROMPT + ACCUSATION_FIELD + EXTERNAL_DIALOGUE_FIELD,
@@ -51,7 +57,7 @@ class Player:
             external_reasoning = parsed_data["external"] 
             
             if self.role == 'spy':
-                internal_reasoning = parsed_data["internal"]
+                self.internal_plan = internal_reasoning = parsed_data["internal"]
                 print(f"{self.name} (internal): {internal_reasoning}")
 
         else:
@@ -80,7 +86,7 @@ class Player:
             external_reasoning = parsed_data["external"] 
             suspected_players = parsed_data.get("suspect", [""])
             if self.role == 'spy':
-                internal_reasoning = parsed_data["internal"]
+                self.internal_plan = internal_reasoning = parsed_data["internal"]
                 print(f"{self.name} (internal): {internal_reasoning}")
             
 
@@ -122,7 +128,7 @@ class Player:
             parsed_data = json.loads(gpt_response)
 
             vote = parsed_data["vote"]
-            internal_reasoning = parsed_data["internal"]
+            self.internal_plan = internal_reasoning = parsed_data["internal"]
 
             print(internal_reasoning)
 
@@ -147,7 +153,7 @@ class Player:
 
             external_reasoning = parsed_data["external"]
             if self.role == 'spy':
-                internal_reasoning = parsed_data["internal"]
+                self.internal_plan = internal_reasoning = parsed_data["internal"]
                 print(f"{self.name} (internal): {internal_reasoning}")
 
         else:

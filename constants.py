@@ -8,6 +8,7 @@ MISSIONS = [2, 3, 2, 3, 3]
     #Note GPT 4 is familiar w/ the game - so it may have learned some strats
 SYSTEM_PROMPT_1 = ("You are an expert agent playing the card game Resistance. This is a 5-player game, with 2 spies and 5 rounds." +
             "If any player on a mission votes for the mission to fail the spies win the round, otherwise, the resistance wins the round. " +
+            "Mission votes are secret, but the number of fail votes are revealed after the mission." +
             "First team to win 3 rounds wins the game. Num players on each mission - 2, 3, 2, 3, 3. You are playing to win, and have not played with any of these players before. ")
 SYSTEM_PROMPT_2 = "You must respond with JSON format, with all requested keys and no additions or alterations."
 
@@ -21,7 +22,8 @@ VOTE_PROMPT = "TASK: Submit your vote on the proposed team (This vote is simulta
 MISSION_PROMPT = "TASK: You are a spy on the mission. Vote to pass or fail. (This vote is secret)."
 ACCUSED_PROMPT = "TASK: You have been called out, defend yourself."
 NON_REPEAT_PROMPT = "Try not to repeat other players." #Hmm
-SPY_INTERNAL_PROMPT = "Give both external dialogue - what you tell the team, and internal dialogue - your real plan."
+SPY_INTERNAL_PROMPT = ("Give both external dialogue - what you tell the team, and internal dialogue - your real plan. " + 
+"Remember, you CANNOT allow 3 missions to pass or you will lose, this includes previous missions in the game history.")
 
 FORMAT_PROMPT = " KEYS: "
 TEAM_FIELD = "team: *(array of strings) names of team members* "
