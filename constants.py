@@ -6,20 +6,21 @@ MISSIONS = [2, 3, 2, 3, 3]
 
 
     #Note GPT 4 is familiar w/ the game - so it may have learned some strats
-SYSTEM_PROMPT_1 = ("You are playing the 5-player game Resistance. 2 spies, 5 rounds." + #consider adding more about team vote
-            "Missions fail if any player on it votes 'fail'. " +
+SYSTEM_PROMPT_1 = ("You are an expert-level, highly analytical AI playing the 5-player game Resistance. 2 spies, 5 rounds. " + #consider adding more about team vote
+            "Missions fail if any player on it votes 'fail', so a single spy on a mission can fail it. Spies can also choose to have missions succeed. " +
             "Mission votes are secret, but the number of fail votes are revealed after the mission." +
-            "First team to win 3 rounds wins the game. Num players on each mission - 2, 3, 2, 3, 3. " +
+            "First team to 3 rounds wins. Num players on each mission - 2, 3, 2, 3, 3. " +
             "Play to win. You dont know these players.")
 
 SYSTEM_PROMPT_2 = "You must respond with JSON format, with all requested keys and no additions or alterations."
-
-SPY_REMINDER = "Blend in, but ensure 3 missions fail."
+#They really like adding both spies on a team.
+SPY_REMINDER = ("You have no way of coordinating with the other spy. The resistance is smart and knows there are 2 spies. " + 
+                "Consider how your actions will be percieved by other players, so blend in and try to appear as a resistance player (while ensuring 3 out of 5 missions fail.)")
 #Need to say - you're the spy, and the other spy is... - handled in player..py
 HISTORY_PROMPT = "Game Progress: "
 
 LEADER_PROMPT = "TASK: Propose a team, explain why."
-DISCUSSION_PROMPT = "TASK: Share public thoughts on proposed team. You may choose to throw suspicion on any players. " #Proposed team is in history...
+DISCUSSION_PROMPT = "TASK: Share public thoughts on proposed team, and if it should proceed, or if the next player should propose the mission. You may choose to throw suspicion on any players. " #Proposed team is in history...
 VOTE_PROMPT = "TASK: Submit your vote on the proposed team (This vote is simultaneous and public). (Response must have the vote key)" 
 MISSION_PROMPT = "TASK: You are a spy on the mission. Vote to pass or fail. (This vote is secret)."
 ACCUSED_PROMPT = "TASK: You have been called out, defend yourself."
@@ -35,11 +36,11 @@ INTERNAL_DIALOGUE_FIELD = "internal: *(string) your plan * "
 EXTERNAL_DIALOGUE_FIELD = "external: *(string) what you tell the other players* "
 ACCUSATION_FIELD = "suspect: *(array of strings) names of anyone you have specifically accused, can be empty* "
 VOTE_FIELD = "vote: *(string) pass or fail* "
-CLOSE_PROMPT = "END KEYS.  Remember: JSON, with all given fields in the requested format. "
+CLOSE_PROMPT = "END KEYS.  Make sure you are considering, and accurately describing the events of previous rounds. Remember: JSON, with all given fields in the requested format. "
 
-CONDENSE_SYSTEM_PROMPT = ("You will be provided with a history for the game Resistance. " +
-    "Your task is to compress dialogue into as few tokens as possible, while keeping all relevant info. Leave the rest as-is. " +
-    "Return the revised history with no commentary")
+CONDENSE_SYSTEM_PROMPT = ("You will be provided with a history for a round of the game Resistance. " +
+    "Compress dialogue into as few tokens as possible, while keeping all relevant info." +
+    "Make sure the result is structured. Make sure its obvious who was on the team that was on the mission.")
 
 
 # PLAYER_DESCRIPTIONS = {

@@ -61,7 +61,7 @@ class Game:
     def play_round(self):
         self.clear_player_guis()
         print(f"\n START ROUND {self.current_mission_index+1} \n")
-        self.add_to_history(f"\n ROUND {self.current_mission_index+1}")
+        self.add_to_history(f"\n ROUND {self.current_mission_index+1}. ({MISSIONS[self.current_mission_index]} person mission)") #one guy thought wrong num of players on M2
         MAX_VOTE_ATTEMPTS = 5
         vote_attempts = 0
         team_string = ""
@@ -148,8 +148,10 @@ class Game:
 
     def team_voting(self, proposed_team):
         self.add_to_history(f"VOTING PHASE")
-        votes = [player.vote_on_team(self.get_history()) for player in self.players]
-        for player, vote in zip(self.players, votes):
+        votes = []
+        for player in self.players:
+            vote = player.vote_on_team(self.get_history())
+            votes.append(vote)
             self.add_to_history(f"{player.name} voted {vote}")
             self.pause() #required to not get rate-limited!
 
@@ -168,16 +170,21 @@ class Game:
 
     def execute_mission(self, approved_team_names):
         print("Begin execute mission")
+        self.add_to_history(f"Mission {self.current_mission_index+1}: {approved_team_names}")
         approved_team = self.names_to_players(approved_team_names)
         #NOTE - history is public - you can't reveal who voted what...
-        mission_votes = [player.execute_mission(self.get_history()) for player in approved_team]
+        mission_votes = []
+        for player in approved_team:
+            vote = player.execute_mission(self.get_history())
+            mission_votes.append(vote)
+            self.pause()
         sabotages = mission_votes.count('fail')
         if sabotages > 0:
-            self.add_to_history(f"Mission failed: {sabotages} sabotages. Spies win the round.") #Note - some versions don't reveal # of fail votes.
+            self.add_to_history(f"Mission failed: {sabotages} sabotages") #Note - some versions don't reveal # of fail votes.
             self.gui.update_game_status(f"The mission fails with {sabotages} fail votes")
             print(f"The mission fails with {sabotages} fail votes \n")
         else:
-            self.add_to_history(f"Mission Passes - Resistance wins the round.")
+            self.add_to_history(f"Mission Passes")
             self.gui.update_game_status(f"The mission has succeeded!")
             print(f"The mission passes! \n")
 
