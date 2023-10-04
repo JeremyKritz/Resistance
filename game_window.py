@@ -99,3 +99,4 @@ class GameWindow:
         """ Update the proposed team on the proposed team label """
         team_str = ', '.join(team_list)
         self.proposed_team_label["text"] = f"Proposed Team: {team_str}"
+        self.update_game_status("A team has been proposed") 

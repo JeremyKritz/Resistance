@@ -8,15 +8,42 @@ class Game:
     def __init__(self, gui=None):
         self.gui = gui
         self.players = []
-        self.prev_rds_history = []  # Added history attribute
-        self.curr_rd_history = [] 
-        self.full_history = [] 
-        self.mission_outcomes = []
-        self.current_team = []
-        self.current_mission_index = 0
-        self.leader_index = 0
+        self.rd_idx = 0
+        self.leader_idx = 0
+        self.propsd_team_idx = 0
         self.next_action_event = Event()
         self.gpt = GPTService()
+        self.failed_missions = 0
+        self.full_game = {
+            'players':PLAYER_NAMES,
+            'rounds':[]
+        }
+        
+        '''
+        {
+            "round": 1,
+            "proposed_teams": [
+                {
+                    "leader": "Alice",
+                    "team_members": ["Alice", "Bob", "Claire"],
+                    "discussion": [
+                        {"player": "Bob", "opinion": "I think this is a good team."},
+                        {"player": "Claire", "opinion": "I'm not so sure about Alice."}
+                    ],
+                    "discussion_summary":""
+                    "votes": [
+                        {"player": "Alice", "vote": "pass"},
+                        {"player": "Bob", "vote": "pass"},
+                        {"player": "Claire", "vote": "fail"}
+                    ],
+                    "outcome": "failed"
+                }, // ... more proposed teams for this round if necessary ...
+            ],
+            "mission_team": ["Alice", "Bob", "Claire"],
+            "mission_outcome": "pass",
+            "sabotages":0
+        '''
+
 
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         self.log_filename = f"history_{timestamp}.txt"
@@ -26,22 +53,12 @@ class Game:
             f.write("=====================\n\n")
 
         self.setup_players()
-        
-
-    def add_to_history(self, event):  # Added method to log events
-        with open(self.log_filename, 'a') as f:
-            f.write(f"{event}")
-            f.write("\n     ----------\n")
-        
-        self.curr_rd_history.append(event)
-        self.full_history.append(event)
 
     def setup_players(self):
-        names = ['Alice', 'Bob', 'Claire', 'Dave', 'Ed']  # Add more names if needed
         roles = ['spy'] * NUM_SPIES + ['good'] * NUM_RESISTANCE
         random.shuffle(roles)
         spy_names = []
-        for name, role in zip(names, roles):
+        for name, role in zip(PLAYER_NAMES, roles):
             player = Player(name, role)
             if role == 'spy':
                 spy_names.append(name)
@@ -52,108 +69,112 @@ class Game:
                 player.fellow_spies = [spy for spy in spy_names if spy != player.name]
             else:
                 player.fellow_spies = None
-        # Add to history
-        player_names = ", ".join(names)
-        self.add_to_history(f"Players: {player_names} (turns rotate based on this order)")
 
 
 
     def play_round(self):
         self.clear_player_guis()
-        print(f"\n START ROUND {self.current_mission_index+1} \n")
-        self.add_to_history(f"\n ROUND {self.current_mission_index+1}. ({MISSIONS[self.current_mission_index]} person mission)") #one guy thought wrong num of players on M2
-        MAX_VOTE_ATTEMPTS = 5
-        vote_attempts = 0
-        team_string = ""
-        while vote_attempts < MAX_VOTE_ATTEMPTS:
-            proposed_team, leader_reasoning = self.propose_team_with_reasoning()
-            print(f"Reasoning: {leader_reasoning}")
-            team_string = ", ".join([player for player in proposed_team])
-            
-            self.gui.update_proposed_team(proposed_team) #temp
-            self.add_to_history("Reasoning: " + leader_reasoning)
-            self.gui.update_game_status("A team has been proposed") 
+        self.full_game["rounds"].append(self.get_init_rd_obj())
+        self.propsd_team_idx = 0
+
+        while self.propsd_team_idx < MAX_VOTE_ATTEMPTS:
+            proposed_team = self.propose_team()
+            self.gui.update_proposed_team(proposed_team)
+     
             self.pause()
             
-            if vote_attempts == MAX_VOTE_ATTEMPTS - 1:  # If this is the 5th vote attempt, auto-approve
-                print("The 5th vote attempt auto-passes!")
-                break
+            if self.propsd_team_idx == MAX_VOTE_ATTEMPTS - 1:
+                break #The 5th vote attempt auto-passes!
 
-            # Open Discussion
-            self.gui.update_game_status("Discussion phase") 
-            accusations = self.open_discussion(proposed_team)
-            print(accusations)
+            suspected_players = self.open_discussion()
+
             self.pause()
             self.clear_player_guis() 
 
-            # Response
-            for target in accusations:
-                for player in self.players: #No real need for efficiency here its 5 players
-                    if player.name == target:
-                        self.gui.update_game_status(f"{player.name} is under suspicion")
-                        response = player.respond(self.get_history())
-                        self.add_to_history(f"{player.name} defense: {response}")
-                        print(f"{target} responds: {response}")
-                        self.pause()
-            
-            is_approved = self.team_voting(proposed_team)
+            self.defense_phase(suspected_players)
+            is_approved = self.team_voting()
 
             if is_approved: 
                 break
             else:
                 self.rotate_leader()
-                vote_attempts += 1
-        self.gui.update_game_status("Mission team: " + team_string)
-        mission_success = self.execute_mission(proposed_team)
-        self.feedback(mission_success)
-        self.condense_history()
+                self.propsd_team_idx += 1
+        
+        mission_result = self.execute_mission(proposed_team)
+        self.gui.update_mission(self.rd_idx, mission_result)
+        self.rotate_leader()
+        self.rd_idx += 1
+        
+        
 
     def rotate_leader(self):
-        self.leader_index = (self.leader_index + 1) % len(self.players)
+        self.leader_idx = (self.leader_idx + 1) % len(self.players)
 
 
-    def propose_team_with_reasoning(self):
-        leader = self.players[self.leader_index]
+    def propose_team(self):
+        leader = self.players[self.leader_idx]
         self.gui.update_leader(leader.name)
-        proposed_team, reasoning = leader.propose_team(self.players, MISSIONS[self.current_mission_index], self.get_history())
-        proposed_team_names = ", ".join(str(player) for player in proposed_team)
-        print(f"\n {leader.name} has proposed team: {proposed_team_names}")
-        self.add_to_history(f"{leader.name} proposed team: {proposed_team_names}") 
-        return proposed_team, reasoning
+        proposed_team, reasoning = leader.propose_team(self.players, MISSIONS[self.rd_idx], self.get_history())
+        init_discussion = {leader.name.upper(): reasoning}
+        proposed_team_obj = {
+            "leader": leader.name,
+            "team_members": proposed_team,
+            "discussion": [init_discussion],
+            "discussion_summary": [],
+            "votes": [],
+            "outcome": None  # Will be set after the votes
+        }
+        self.get_current_round()["proposed_teams"].append(proposed_team_obj)
+        return proposed_team
 
-    def open_discussion(self, proposed_team):
+
+    def open_discussion(self):
+        #open discussion around the proposed team, leading into defenses against specific callouts
+        self.gui.update_game_status("Discussion phase") 
         accused = []
-        self.add_to_history(f"DISCUSSION PHASE")
+        proposed_team = self.get_current_proposed_team_obj()["team_members"]
 
-        # Loop through all players to gather their opinions on the proposed team
-        for index, player in enumerate(self.players):
-            if index == self.leader_index: #Leader won't weigh on own proposal now.
+        for idx, player in enumerate(self.players):
+            if idx == self.leader_idx: #Leader won't weigh on own proposal
                 continue
-            # Get the player's opinion and list of suspected players
+
             opinion, suspected_players = player.open_discussion(proposed_team, self.get_history())
-            
-            self.add_to_history(f"{player.name}: {opinion}")
-            print(f"{player.name} says: {opinion}\n")
+
+            self.add_to_discussion({player.name.upper(): opinion})
 
             for suspected_player in suspected_players:
                 if suspected_player and suspected_player not in accused:  # Check if the suspected_player is not empty and not in the set yet
                     accused.append(suspected_player)
-                    print(f"{suspected_player} accused")
             
             self.pause()
-        self.gui.update_game_status(f"Called out as suspicious:  {suspected_players}")
+        self.gui.update_game_status(f"Called out as suspicious:  {accused}")
         return accused   
+    
+
+    def defense_phase(self, suspected_players):
+        suspected_players = self.names_to_players(suspected_players)
+        for player in suspected_players:
+            self.gui.update_game_status(f"{player.name} is under suspicion")
+            response = player.respond(self.get_history())
+            self.add_to_discussion({player.name.upper(): response})
+            self.pause()
 
 
 
-    def team_voting(self, proposed_team):
-        self.add_to_history(f"VOTING PHASE")
+    def team_voting(self):
         votes = []
+        vote_logs = []
+
         for player in self.players:
-            vote = player.vote_on_team(self.get_history())
+            vote = player.vote_on_team(self.get_history()) # Note: If get_history includes votes, you might want to provide history till the last round only.
             votes.append(vote)
-            self.add_to_history(f"{player.name} voted {vote}")
+            vote_logs.append({player.name.upper(): vote})
             self.pause() #required to not get rate-limited!
+
+        # Now, after collecting all the votes, add them to the history
+        
+        for vote_str in vote_logs:
+            self.get_current_proposed_team_obj()["votes"].append(vote_str)
 
         approved = votes.count('pass') > len(self.players) / 2
         if(approved):
@@ -169,70 +190,76 @@ class Game:
     
 
     def execute_mission(self, approved_team_names):
-        print("Begin execute mission")
-        self.add_to_history(f"Mission {self.current_mission_index+1}: {approved_team_names}")
+        print(approved_team_names)
+        self.gui.update_game_status(f"Mission team: {approved_team_names}")
+        self.get_current_round()["mission_team"] = approved_team_names
         approved_team = self.names_to_players(approved_team_names)
-        #NOTE - history is public - you can't reveal who voted what...
+        #History is public - you can't reveal who voted what...
         mission_votes = []
         for player in approved_team:
             vote = player.execute_mission(self.get_history())
             mission_votes.append(vote)
             self.pause()
         sabotages = mission_votes.count('fail')
+        outcome = 'pass'
         if sabotages > 0:
-            self.add_to_history(f"Mission failed: {sabotages} sabotages") #Note - some versions don't reveal # of fail votes.
-            self.gui.update_game_status(f"The mission fails with {sabotages} fail votes")
-            print(f"The mission fails with {sabotages} fail votes \n")
-        else:
-            self.add_to_history(f"Mission Passes")
-            self.gui.update_game_status(f"The mission has succeeded!")
-            print(f"The mission passes! \n")
+            outcome = 'fail'
+
+        self.get_current_round()["outcome"] = outcome
+        self.get_current_round()["sabotages"] = sabotages 
+    
+        self.gui.update_game_status(f"Mission Result: {outcome.upper()}. {sabotages} fail votes")
 
         #For some games some missions require 2 votes to fail... this doesnt cover that
         self.pause()
+        return outcome 
 
-        return sabotages == 0
 
+    def add_to_discussion(self, string):
+        self.get_discussion().append(string)
 
-    def feedback(self, mission_result):
-        outcome = "pass" if mission_result else "fail"
-        self.add_to_history(f"Mission {self.current_mission_index + 1} {outcome}")
-        self.mission_outcomes.append(mission_result)
-        self.gui.update_mission(self.current_mission_index, outcome)
-        self.rotate_leader()
-        self.current_mission_index += 1
+    def get_current_round(self):
+        return self.full_game["rounds"][self.rd_idx]
 
-        if self.current_mission_index == 5:
-            print("END")
-            self.print_history()
+    def get_current_proposed_team_obj(self):
+        return self.get_current_round()["proposed_teams"][self.propsd_team_idx]
 
+    def get_discussion(self):
+        return self.get_current_proposed_team_obj()["discussion"]
         
     def names_to_players(self, player_names):
         return [player for player in self.players if player.name in player_names]
     
+    def get_init_rd_obj(self):
+        return {
+            "round": self.rd_idx + 1, #more readable to not zero-idx the rounds
+            "mission_player_count": MISSIONS[self.rd_idx],
+            "proposed_teams": [],
+            "mission_team":[],
+            "mission_outcome": None,  # Will be set at the end of the round
+            "sabotages":None
+        }
     
     def clear_player_guis(self):
         for player in self.players:
             player.gui.clear_all()
 
 
-    def print_history(self):  # Added method to print the game history
-        for event in self.full_history:
-            print(event)
 
     def pause(self):
-        print("Waitin'")
+        print("Waitin' for the click")
         self.gui.wait_for_next_action()
 
-    def condense_history(self):  # Added method to print the game history
+    def condense_dialogue(self):  # Added method to print the game history
 
         system = CONDENSE_SYSTEM_PROMPT
-        prompt = "  ".join(self.curr_rd_history)
-        condensed  = self.gpt.call_gpt(system, prompt)
-        self.prev_rds_history.append(condensed)
-        self.curr_rd_history = []
+        prompt = '\n'.join(self.get_discussion())
+        #condensed  = self.gpt.call_gpt(system, prompt)
+        condensed = "Summary"
+        self.get_current_proposed_team_obj()["discussion_summary"] = condensed
 
         #make gpt call...
 
     def get_history(self):
-        return self.prev_rds_history + self.curr_rd_history
+        print(self.full_game)
+        return "PLACEHOLDER" #gpt isnt playing yet...

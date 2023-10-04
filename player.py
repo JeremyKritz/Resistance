@@ -11,7 +11,7 @@ class Player:
         self.role = role
         self.fellow_spies = fellow_spies if fellow_spies else []
         self.gui = None 
-        self.enableGPT = True
+        self.enableGPT = False
         self.gpt = GPTService()
         self.internal_plan = "" #Consider having spies remember their own plans...
 
@@ -48,11 +48,8 @@ class Player:
 
 
         if self.enableGPT:
-
             gpt_response = self.gpt.call_gpt_player(self.get_system_prompt(), prompt)    
-
             parsed_data = json.loads(gpt_response)
-
             team = parsed_data["team"]
             external_reasoning = parsed_data["external"] 
             
@@ -92,6 +89,7 @@ class Player:
 
         else:
             external_reasoning = "Idk seems fine" # Placeholder
+            
             suspected_players = random.sample(proposed_team, random.choice([0, 1]))
             if self.role == 'spy':
                 internal_reasoning = "I am evil"

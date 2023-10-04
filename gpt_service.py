@@ -7,7 +7,7 @@ class GPTService:
     def __init__(self):
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         self.log_filename = f"prompt_{timestamp}.txt"
-        self.model = "gpt-4"
+        self.model = "gpt-3.5-turbo"
         self.tokens_used = 0
         self.last_request_time = 0
         # Create the file with just a header for now
@@ -53,7 +53,7 @@ class GPTService:
         retries = 0
         while retries <= max_retries: #GPT 3 sometimes (rarely) doesnt return proper format
             if retries > 0:
-                time.sleep(.6)
+                time.sleep(15) #long sleep bc rate limit on gpt4
                 prompt = prompt + " Again, ensure the response matches the requested JSON format."
             response = self.call_gpt(system, prompt)
             clean_json_response = self.clean_json(response)
