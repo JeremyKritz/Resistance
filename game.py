@@ -18,32 +18,6 @@ class Game:
             'players':PLAYER_NAMES,
             'rounds':[]
         }
-        
-        '''
-        {
-            "round": 1,
-            "proposed_teams": [
-                {
-                    "leader": "Alice",
-                    "team_members": ["Alice", "Bob", "Claire"],
-                    "discussion": [
-                        {"player": "Bob", "opinion": "I think this is a good team."},
-                        {"player": "Claire", "opinion": "I'm not so sure about Alice."}
-                    ],
-                    "discussion_summary":""
-                    "votes": [
-                        {"player": "Alice", "vote": "pass"},
-                        {"player": "Bob", "vote": "pass"},
-                        {"player": "Claire", "vote": "fail"}
-                    ],
-                    "outcome": "failed"
-                }, // ... more proposed teams for this round if necessary ...
-            ],
-            "mission_team": ["Alice", "Bob", "Claire"],
-            "mission_outcome": "pass",
-            "sabotages":0
-        '''
-
 
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         self.log_filename = f"history_{timestamp}.txt"
@@ -104,6 +78,7 @@ class Game:
         self.gui.update_mission(self.rd_idx, mission_result)
         self.rotate_leader()
         self.rd_idx += 1
+        #add some sort of end of game thingy
         
         
 
