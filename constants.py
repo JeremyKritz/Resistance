@@ -31,7 +31,7 @@ NON_REPEAT_PROMPT = "Try not to repeat other players." #Hmm
 SPY_INTERNAL_PROMPT = ("Also give internal dialogue - your real plan. " + 
 "Remember, you CANNOT allow 3 missions to pass. This includes previous missions in the game history.")
 
-CONCISE_PROMPT = " Brevity is important. Use as few words as possible. "
+CONCISE_PROMPT = " Brevity is important. Use as few words as possible. Consider events of previous rounds, dont waste tokens."
 
 FORMAT_PROMPT = " KEYS: "
 TEAM_FIELD = "team: *(array of strings) names of team members* "
@@ -39,7 +39,7 @@ INTERNAL_DIALOGUE_FIELD = "internal: *(string) your plan * "
 EXTERNAL_DIALOGUE_FIELD = "external: *(string) what you tell the other players* "
 ACCUSATION_FIELD = "suspect: *(array of strings) names of anyone you have specifically accused, can be empty* "
 VOTE_FIELD = "vote: *(string) pass or fail* "
-CLOSE_PROMPT = "END KEYS.  Make sure you are considering, and accurately describing the events of previous rounds, while not wasting tokens. Remember: JSON, with all given fields in the requested format. "
+CLOSE_PROMPT = "END KEYS. Remember: JSON, with all given fields in the requested format. "
 
 CONDENSE_SYSTEM_PROMPT = ("You will be provided with dialogue from a round of the game Resistance. " +
     "Summarize into as few tokens as possible, while keeping all relevant info.")

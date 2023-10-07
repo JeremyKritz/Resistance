@@ -23,7 +23,7 @@ class Player:
         return SYSTEM_PROMPT_1 + role_context + SYSTEM_PROMPT_2
     
     def build_prompt(self, mode, mission_size=None, history=[]):
-        base_prompt = HISTORY_PROMPT + ",".join(history) + "\n"
+        base_prompt = HISTORY_PROMPT + history + "\n" #hist no longer an arr
 
         if self.role == 'spy' and mode in ["vote", "mission"]:
             base_prompt += "Your most recent plan for this round was " + self.internal_plan + "\n"
@@ -42,6 +42,7 @@ class Player:
 
 
     def propose_team(self, players, mission_size, history):
+        print(history)
         # Randomly selects players for the team.
         prompt = self.build_prompt("propose", mission_size=mission_size, history=history)
         internal_reasoning = None
@@ -89,7 +90,6 @@ class Player:
 
         else:
             external_reasoning = "Idk seems fine" # Placeholder
-            
             suspected_players = random.sample(proposed_team, random.choice([0, 1]))
             if self.role == 'spy':
                 internal_reasoning = "I am evil"

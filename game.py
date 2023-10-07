@@ -13,7 +13,6 @@ class Game:
         self.propsd_team_idx = 0
         self.next_action_event = Event()
         self.gpt = GPTService()
-        self.failed_missions = 0
         self.full_game = {
             'players':PLAYER_NAMES,
             'rounds':[]
@@ -67,6 +66,7 @@ class Game:
 
             self.defense_phase(suspected_players)
             is_approved = self.team_voting()
+            self.condense_dialogue()
 
             if is_approved: 
                 break
@@ -76,8 +76,11 @@ class Game:
         
         mission_result = self.execute_mission(proposed_team)
         self.gui.update_mission(self.rd_idx, mission_result)
-        self.rotate_leader()
-        self.rd_idx += 1
+        if self.has_game_ended():
+            self.end_game()
+        else:
+            self.rotate_leader()
+            self.rd_idx += 1
         #add some sort of end of game thingy
         
         
@@ -95,9 +98,8 @@ class Game:
             "leader": leader.name,
             "team_members": proposed_team,
             "discussion": [init_discussion],
-            "discussion_summary": [],
-            "votes": [],
-            "outcome": None  # Will be set after the votes
+            "discussion_summary": "",
+            "votes": []
         }
         self.get_current_round()["proposed_teams"].append(proposed_team_obj)
         return proposed_team
@@ -180,10 +182,12 @@ class Game:
         if sabotages > 0:
             outcome = 'fail'
 
-        self.get_current_round()["outcome"] = outcome
+        self.get_current_round()["mission_outcome"] = outcome
         self.get_current_round()["sabotages"] = sabotages 
     
         self.gui.update_game_status(f"Mission Result: {outcome.upper()}. {sabotages} fail votes")
+
+        print(self.full_game)
 
         #For some games some missions require 2 votes to fail... this doesnt cover that
         self.pause()
@@ -215,6 +219,25 @@ class Game:
             "sabotages":None
         }
     
+    def has_game_ended(self):
+        passed_missions = sum(1 for round_obj in self.full_game["rounds"] if round_obj["mission_outcome"] == "pass")
+        failed_missions = sum(1 for round_obj in self.full_game["rounds"] if round_obj["mission_outcome"] == "fail")
+    
+        return failed_missions >= 3 or passed_missions >= 3
+    
+    def end_game(self):
+    # Write the history to a file
+        with open(self.log_filename, 'a') as f:
+            f.write(str(self.full_game))
+            f.write("\n=====================\n\n")
+
+        # Update the GUI to show the end game status
+        failed_missions = sum(1 for round_obj in self.full_game["rounds"] if round_obj["mission_outcome"] == "fail")
+        if failed_missions >= 3:
+            self.gui.update_game_status("The spies have won!")
+        else:
+            self.gui.update_game_status("The resistance has won!")
+
     def clear_player_guis(self):
         for player in self.players:
             player.gui.clear_all()
@@ -228,13 +251,55 @@ class Game:
     def condense_dialogue(self):  # Added method to print the game history
 
         system = CONDENSE_SYSTEM_PROMPT
-        prompt = '\n'.join(self.get_discussion())
-        #condensed  = self.gpt.call_gpt(system, prompt)
-        condensed = "Summary"
+        discussion = self.get_discussion()
+    
+        # Convert each dictionary in the discussion to a string and concatenate them
+        prompt = ''.join([str(item) for item in discussion])
+        condensed  = self.gpt.call_gpt(system, prompt)
+        #condensed = "Summary" #for not using gpt
+        print(condensed)
         self.get_current_proposed_team_obj()["discussion_summary"] = condensed
 
         #make gpt call...
 
     def get_history(self):
-        print(self.full_game)
-        return "PLACEHOLDER" #gpt isnt playing yet...
+        # Create a deep copy of the full_game to avoid modifying the original data
+        history_copy = dict(self.full_game)
+
+            # Clean and filter out unnecessary data
+        def clean_data(data):
+            if isinstance(data, dict):
+                cleaned = {}
+                for k, v in data.items():
+                    if k == "proposed_teams":
+                        for team in v:
+                            if team.get("discussion_summary"):
+                                team.pop("discussion", None)
+                    v = clean_data(v)
+                    if v not in [None, "", []]:  # Removing key-value pairs with None, empty strings, or empty lists
+                        cleaned[k] = v
+                return cleaned
+            elif isinstance(data, list):
+                return [clean_data(item) for item in data if item not in [None, ""]]
+            else:
+                return data
+
+        cleaned_history = clean_data(history_copy)
+
+        # Calculate passed and failed missions
+        passed_missions = sum([1 for round_obj in cleaned_history["rounds"] if round_obj.get("mission_outcome") == "pass"])
+        failed_missions = sum([1 for round_obj in cleaned_history["rounds"] if round_obj.get("mission_outcome") == "fail"])
+
+        resistance_to_win = 3 - passed_missions
+        spies_to_win = 3 - failed_missions
+
+        # Construct the summary
+        summary = (
+            f"\nCurrent State\nScore: Resistance {passed_missions} - Spies {failed_missions}\n"
+            f"Resistance requires {resistance_to_win} more passed missions to win.\n"
+            f"Spies require {spies_to_win} more failed missions to win."
+        )
+
+        # Convert to string and remove single quotation marks
+        history_str = str(cleaned_history).replace("'", "")
+        return history_str + summary

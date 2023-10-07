@@ -53,11 +53,12 @@ class GPTService:
         retries = 0
         while retries <= max_retries: #GPT 3 sometimes (rarely) doesnt return proper format
             if retries > 0:
-                time.sleep(15) #long sleep bc rate limit on gpt4
+                time.sleep(15) #long sleep bc rate limit on gpt4, might need to move retries to main call
                 prompt = prompt + " Again, ensure the response matches the requested JSON format."
-            response = self.call_gpt(system, prompt)
-            clean_json_response = self.clean_json(response)
             try:
+                response = self.call_gpt(system, prompt)
+                clean_json_response = self.clean_json(response)
+
                 pretty_response = json.loads(clean_json_response)
                 print("\nResponse Text:\n", pretty_response)
                 return clean_json_response
