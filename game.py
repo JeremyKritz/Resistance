@@ -290,16 +290,17 @@ class Game:
         passed_missions = sum([1 for round_obj in cleaned_history["rounds"] if round_obj.get("mission_outcome") == "pass"])
         failed_missions = sum([1 for round_obj in cleaned_history["rounds"] if round_obj.get("mission_outcome") == "fail"])
 
-        resistance_to_win = 3 - passed_missions
-        spies_to_win = 3 - failed_missions
+        total_rounds = len(cleaned_history["rounds"])
+        remaining_rounds = 5 - (passed_missions + failed_missions)
+        missions_to_fail = 3 - failed_missions
 
         # Construct the summary
-        summary = (
-            f"\nCurrent State\nScore: Resistance {passed_missions} - Spies {failed_missions}\n"
-            f"Resistance requires {resistance_to_win} more passed missions to win.\n"
-            f"Spies require {spies_to_win} more failed missions to win."
-        )
+            # Construct the summary for spies
+
+        spy_summary = f"This is Rd {total_rounds}. {missions_to_fail} of the remaining {remaining_rounds} missions must fail!"
+        if remaining_rounds == missions_to_fail:
+            spy_summary = "ALL REMAINING MISSIONS MUST FAIL!"
 
         # Convert to string and remove single quotation marks
         history_str = str(cleaned_history).replace("'", "")
-        return history_str + summary
+        return [history_str, spy_summary]

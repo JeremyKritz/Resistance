@@ -11,7 +11,7 @@ class Player:
         self.role = role
         self.fellow_spies = fellow_spies if fellow_spies else []
         self.gui = None 
-        self.enableGPT = False
+        self.enableGPT = True
         self.gpt = GPTService()
         self.internal_plan = "" #Consider having spies remember their own plans...
 
@@ -23,26 +23,32 @@ class Player:
         return SYSTEM_PROMPT_1 + role_context + SYSTEM_PROMPT_2
     
     def build_prompt(self, mode, mission_size=None, history=[]):
-        base_prompt = HISTORY_PROMPT + history + "\n" #hist no longer an arr
+        history_json_str = history[0]
+        spy_reminder = history[1]
+        base_prompt = HISTORY_PROMPT + history_json_str + "\n"  # hist no longer an arr
 
         if self.role == 'spy' and mode in ["vote", "mission"]:
             base_prompt += "Your most recent plan for this round was " + self.internal_plan + "\n"
 
-
-        turn_specific_prompts = { #may move to contants idk
+        turn_specific_prompts = {  # may move to contants idk
             "propose": LEADER_PROMPT + "Mission size:" + str(mission_size) + CONCISE_PROMPT + FORMAT_PROMPT + TEAM_FIELD + EXTERNAL_DIALOGUE_FIELD,
             "discussion": DISCUSSION_PROMPT + CONCISE_PROMPT + FORMAT_PROMPT + ACCUSATION_FIELD + EXTERNAL_DIALOGUE_FIELD,
             "vote": VOTE_PROMPT + FORMAT_PROMPT + VOTE_FIELD,
             "mission": MISSION_PROMPT + FORMAT_PROMPT + VOTE_FIELD,
             "accused": ACCUSED_PROMPT + CONCISE_PROMPT + FORMAT_PROMPT + EXTERNAL_DIALOGUE_FIELD,
         }
-        if self.role == 'spy' and mode in ["propose", "discussion", "mission", "accused"]:
-            return base_prompt + turn_specific_prompts[mode] + SPY_INTERNAL_PROMPT + INTERNAL_DIALOGUE_FIELD + CLOSE_PROMPT
-        return base_prompt + turn_specific_prompts[mode] + CLOSE_PROMPT
+
+        if self.role == 'spy':
+            if mode in ["propose", "discussion", "mission", "accused"]:
+                return base_prompt + turn_specific_prompts[mode] + SPY_INTERNAL_PROMPT + INTERNAL_DIALOGUE_FIELD + CLOSE_PROMPT + spy_reminder
+            else:
+                return base_prompt + turn_specific_prompts[mode] + CLOSE_PROMPT + spy_reminder
+        else:
+            return base_prompt + turn_specific_prompts[mode] + CLOSE_PROMPT
 
 
     def propose_team(self, players, mission_size, history):
-        print(history)
+
         # Randomly selects players for the team.
         prompt = self.build_prompt("propose", mission_size=mission_size, history=history)
         internal_reasoning = None
@@ -102,6 +108,8 @@ class Player:
 
     def vote_on_team(self, history):   
         prompt = self.build_prompt("vote", history=history)
+        # if self.role == 'spy':
+        #     print (prompt)
         if self.enableGPT:
             gpt_response = self.gpt.call_gpt_player(self.get_system_prompt(), prompt)  
             parsed_data = json.loads(gpt_response)
