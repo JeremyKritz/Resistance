@@ -28,8 +28,9 @@ class Game:
         self.setup_players()
 
     def setup_players(self):
-        roles = ['spy'] * NUM_SPIES + ['good'] * NUM_RESISTANCE
-        random.shuffle(roles)
+        #roles = ['spy'] * NUM_SPIES + ['good'] * NUM_RESISTANCE
+        #random.shuffle(roles)
+        roles = ['spy', 'good', 'good', 'spy', 'good'] #hardcoded for now (they dont remember past games...)
         spy_names = []
         for name, role in zip(PLAYER_NAMES, roles):
             player = Player(name, role)

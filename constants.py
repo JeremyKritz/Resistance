@@ -13,7 +13,8 @@ SYSTEM_PROMPT_1 = ("You are an expert, analytical AI playing the 5-player game R
             "Missions fail if any player on it votes fail. Spies can also have missions succeed. " +
             "Mission votes are secret, number of fail votes are revealed after mission." +
             "First team to win 3 rounds wins. Num players on each mission - 2, 3, 2, 3, 3 " +
-            "Play to win. You dont know these players.")
+            "You will get game hist in JSON, make sure you use it to accurately recall makeup of previous rd " +
+            "You dont know these players.")
 
 SYSTEM_PROMPT_2 = "Respond with JSON, all requested keys and no additions or alterations."
 #They really like adding both spies on a team.
@@ -22,7 +23,7 @@ SPY_REMINDER = ("You are on same team as other spy but cant coordinate. Resistan
 #Need to say - you're the spy, and the other spy is... - handled in player..py
 HISTORY_PROMPT = "Game Summary: \n" #GPT understands newline chars...
 
-SPY_LEADER_REMINDER = " If you want mission to fail, consider whether you want both spies on mission, given suspicion towards a failed team " #this one is a bit like cheating...
+SPY_LEADER_REMINDER = " If you want mission to fail you can secretly fail it, so consider whether you want both spies on mission, given suspicion towards failed team " #this one is a bit like cheating...
 
 LEADER_PROMPT = "TASK: Propose a team, explain why."
 DISCUSSION_PROMPT = "TASK: Share public thoughts on proposed team, and if it should proceed, or if next player should propose mission. You may choose to throw suspicion on any players. " #Proposed team is in history...
