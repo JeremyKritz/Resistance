@@ -299,7 +299,7 @@ class Game:
 
         spy_summary = f"This is Rd {total_rounds}. {missions_to_fail} of the remaining {remaining_rounds} missions must fail!"
         if remaining_rounds == missions_to_fail:
-            spy_summary = "ALL REMAINING MISSIONS MUST FAIL!"
+            spy_summary += " THIS MISSION MUST FAIL OR YOU WILL LOSE AND THE GAME WILL END!" #Turns out this is required lol
 
         # Convert to string and remove single quotation marks
         history_str = str(cleaned_history).replace("'", "")

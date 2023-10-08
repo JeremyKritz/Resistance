@@ -25,32 +25,42 @@ class Player:
     def build_prompt(self, mode, mission_size=None, history=[]):
         history_json_str = history[0]
         spy_reminder = history[1]
-        base_prompt = HISTORY_PROMPT + history_json_str + "\n"  # hist no longer an arr
 
-        if self.role == 'spy' and mode in ["vote", "mission"]:
-            base_prompt += "Your most recent plan for this round was " + self.internal_plan + "\n"
+        # Begin with the base prompt
+        prompt = HISTORY_PROMPT + history_json_str + "\n"
 
-        turn_specific_prompts = {  # may move to contants idk
-            "propose": LEADER_PROMPT + "Mission size:" + str(mission_size) + CONCISE_PROMPT + FORMAT_PROMPT + TEAM_FIELD + EXTERNAL_DIALOGUE_FIELD,
+        resist_turn_specific_prompts = {
+            "propose": LEADER_PROMPT + " Mission size:" + str(mission_size) + CONCISE_PROMPT + FORMAT_PROMPT + TEAM_FIELD + EXTERNAL_DIALOGUE_FIELD,
             "discussion": DISCUSSION_PROMPT + CONCISE_PROMPT + FORMAT_PROMPT + ACCUSATION_FIELD + EXTERNAL_DIALOGUE_FIELD,
             "vote": VOTE_PROMPT + FORMAT_PROMPT + VOTE_FIELD,
             "mission": MISSION_PROMPT + FORMAT_PROMPT + VOTE_FIELD,
             "accused": ACCUSED_PROMPT + CONCISE_PROMPT + FORMAT_PROMPT + EXTERNAL_DIALOGUE_FIELD,
         }
 
+        spy_turn_specific_prompts = {
+            "propose": LEADER_PROMPT + " Mission size:" + str(mission_size) + SPY_INTERNAL_PROMPT + CONCISE_PROMPT + SPY_LEADER_REMINDER + FORMAT_PROMPT + TEAM_FIELD + EXTERNAL_DIALOGUE_FIELD + INTERNAL_DIALOGUE_FIELD,
+            "discussion": DISCUSSION_PROMPT + SPY_INTERNAL_PROMPT + CONCISE_PROMPT + FORMAT_PROMPT + ACCUSATION_FIELD + EXTERNAL_DIALOGUE_FIELD + INTERNAL_DIALOGUE_FIELD,
+            "vote": VOTE_PROMPT + FORMAT_PROMPT + VOTE_FIELD,
+            "mission": MISSION_PROMPT + SPY_INTERNAL_PROMPT + FORMAT_PROMPT + VOTE_FIELD + INTERNAL_DIALOGUE_FIELD,
+            "accused": ACCUSED_PROMPT + SPY_INTERNAL_PROMPT + CONCISE_PROMPT + FORMAT_PROMPT + EXTERNAL_DIALOGUE_FIELD + INTERNAL_DIALOGUE_FIELD,
+        }
+
+        # Add the specific prompt based on role and game mode
         if self.role == 'spy':
-            if mode in ["propose", "discussion", "mission", "accused"]:
-                return base_prompt + turn_specific_prompts[mode] + SPY_INTERNAL_PROMPT + INTERNAL_DIALOGUE_FIELD + CLOSE_PROMPT + spy_reminder
-            else:
-                return base_prompt + turn_specific_prompts[mode] + CLOSE_PROMPT + spy_reminder
+            if mode in ["vote", "mission"]:
+                prompt += "Your plan was " + self.internal_plan + "\n"
+            prompt = prompt + spy_turn_specific_prompts[mode] + CLOSE_PROMPT + spy_reminder
         else:
-            return base_prompt + turn_specific_prompts[mode] + CLOSE_PROMPT
+            prompt = prompt + resist_turn_specific_prompts[mode] + CLOSE_PROMPT
+
+        return prompt
 
 
     def propose_team(self, players, mission_size, history):
 
         # Randomly selects players for the team.
         prompt = self.build_prompt("propose", mission_size=mission_size, history=history)
+        #print(prompt)
         internal_reasoning = None
 
 
@@ -83,6 +93,7 @@ class Player:
     def open_discussion(self, proposed_team, history):
         prompt = self.build_prompt("discussion", history=history)
         internal_reasoning = None
+        #print(prompt)
 
         if self.enableGPT:
             gpt_response = self.gpt.call_gpt_player(self.get_system_prompt(), prompt)    
@@ -108,8 +119,8 @@ class Player:
 
     def vote_on_team(self, history):   
         prompt = self.build_prompt("vote", history=history)
-        # if self.role == 'spy':
-        #     print (prompt)
+        if self.role == 'spy':
+            print (prompt)
         if self.enableGPT:
             gpt_response = self.gpt.call_gpt_player(self.get_system_prompt(), prompt)  
             parsed_data = json.loads(gpt_response)

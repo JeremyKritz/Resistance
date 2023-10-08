@@ -15,7 +15,7 @@ class GPTService:
             f.write("Prompts and Responses\n")
             f.write("=====================\n\n")
 
-    def call_gpt(self, system, prompt):
+    def call_gpt(self, system, prompt): # ADD A TIMEOUT...
         print("\n Calling GPT")
         response = openai.ChatCompletion.create(
             model= self.model,
