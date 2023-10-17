@@ -8,13 +8,13 @@ PLAYER_NAMES = ['Alice', 'Bob', 'Claire', 'Dave', 'Ed']
 
 #GPT understands newline chars...
     #Note GPT 4 is familiar w/ the game - so it may have learned some strats
-SYSTEM_PROMPT_1 = ("You are an expert AI playing the 5-player game Resistance, with 2 spies. "  #consider adding more about team vote
+SYSTEM_PROMPT_1 = ("You are a highly analytical AI playing the 5-player game Resistance, with 2 spies. "  #consider adding more about team vote
            #"Missions are proposed by a leader. Leader does not convey any additional abilities on a mission." +
             "Num players on each mission - 2, 3, 2, 3, 3 " 
             "You will get game history in JSON " 
             "You dont know these players ")
 
-SYSTEM_PROMPT_2 = "Respond with JSON, all requested keys and no additions or alterations."
+SYSTEM_PROMPT_2 = "Respond with JSON, all requested keys and no additions or alterations. "
 
 #They really like adding both spies on a team.
 # SPY_REMINDER = ("You are on same team as other spy but cant coordinate. Resistance knows there are 2 spies. " + 
@@ -32,7 +32,7 @@ MISSION_PROMPT = "TASK You are a spy on the mission. Vote to pass or fail. (Vote
 ACCUSED_PROMPT = "TASK You have been called out, defend yourself."
 # SPY_INTERNAL_PROMPT = " Also give internal dialogue - your real plan. "
 
-CONCISE_PROMPT = " Be consise."
+CONCISE_PROMPT = "Brevity important. Use few words as possible. Consider events of previous rounds. Dont waste tokens."
 
 FORMAT_PROMPT = " KEYS: "
 INITIAL_THINKING_FIELD = "internal: *(string) considerations before the action* "
@@ -47,14 +47,13 @@ CONDENSE_SYSTEM_PROMPT = ("You will be provided with dialogue from a round of th
     "Summarize into as few tokens as possible, while keeping all relevant info.")
 
 
-CONSIDERATIONS_PROMPT = " Give initial thinking first. Reason through the following (use as few tokens as possible): "
+CONSIDERATIONS_PROMPT = " Give initial thinking first in 'internal' field. Reason through the following (Be consise as possible, use min tokens): "
 
-FINAL_CONSIDERATIONS = "Any last thoughts?"
+FINAL_CONSIDERATIONS = "Anything else impprtant to think through?"   #"Any last thoughts?"
 
 SPY_VOTE_CONSIDERATIONS = (
     "Whats the score? If either team gets to 3 they win. What will the score be after this round? "
     "Will this vote make you look suspicious? "
-    "Do you want to change vote? "
 )
 
 
@@ -62,7 +61,6 @@ SPY_EXECUTE_MISSION_CONSIDERATIONS = (
     "Whats the score? If either team gets to 3 they win. What will the score be after this round? "
     "If you fail the vote, can you blame someone else? "
     "How will this set you up for future rounds? "
-    "Do you want to change vote? "
 )
 
 SPY_PROPOSAL_CONSIDERATIONS = (
@@ -93,12 +91,10 @@ SPY_DISCUSSION_CONSIDERATIONS = (
 )
 
 RESIST_GENERAL_CONSIDERATIONS = (
-    "What is your initial plan? "
-    "There are 2 spies, who might they be? "
-    "Has anyone acted suspiciously? "
-    "You are innocent, does that prove anyone else as the spy? "
-    "Do you trust anyone else? "
+    "You are innocent, so half the remaining players are spies. Who are the 2 you most suspect "
 )
+
+RESIST_VOTE_CONSIDERATIONS = ("Based on the discussion, do you think this team will be successful?")
 
 
 

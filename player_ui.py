@@ -74,14 +74,16 @@ class PlayerUnit(ttk.Frame):
         self.insert_word(dialogue_box, words, callback=callback)
 
     def update_dialogue(self, external_text=None, internal_text=None):     
-        def after_external_update():
-            """Callback function to update internal dialogue after external."""
-            if internal_text:
-                self.update_dialogue_box(self.internal_dialogue_box, internal_text)
-        if external_text:
-            self.update_dialogue_box(self.dialogue_box, external_text, callback=after_external_update)
-        elif internal_text:
-            self.update_dialogue_box(self.internal_dialogue_box, internal_text)
+        def after_internal_update():
+            """Callback function to update external dialogue after internal."""
+            if external_text:
+                self.update_dialogue_box(self.dialogue_box, external_text)
+                
+        if internal_text:
+            self.update_dialogue_box(self.internal_dialogue_box, internal_text, callback=after_internal_update)
+        elif external_text:
+            self.update_dialogue_box(self.dialogue_box, external_text)
+
 
 
     def update_vote(self, vote):

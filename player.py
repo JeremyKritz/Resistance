@@ -11,7 +11,7 @@ class Player:
         self.role = role
         self.fellow_spies = fellow_spies if fellow_spies else []
         self.gui = None 
-        self.enableGPT = False
+        self.enableGPT = True
         self.gpt = GPTService()
         #self.internal_plan = "" #Consider having spies remember their own plans...
 
@@ -19,7 +19,7 @@ class Player:
     def get_system_prompt(self):
         role_context = f"You are {self.name}, in the resistance."
         if self.role == 'spy':
-            role_context =  f"You are {self.name}, you are a spy. The other spy is {self.fellow_spies[0]}."
+            role_context =  f"You are {self.name}, you are a spy. The other spy is {self.fellow_spies[0]}. Your highest priority is winning. "
         return SYSTEM_PROMPT_1 + role_context + SYSTEM_PROMPT_2
     
     def build_prompt(self, mode, mission_size=None, history=[]):
@@ -30,14 +30,15 @@ class Player:
         prompt = HISTORY_PROMPT + history_json_str + "\n"
 
         considerations = self.get_considerations(mode)
+        standard = CONSIDERATIONS_PROMPT + considerations + CONCISE_PROMPT + FORMAT_PROMPT + INITIAL_THINKING_FIELD 
 
 
         turn_specific_prompts = {
-            "propose": LEADER_PROMPT + " Mission size:" + str(mission_size) + CONSIDERATIONS_PROMPT + considerations + CONCISE_PROMPT + FORMAT_PROMPT + INITIAL_THINKING_FIELD + TEAM_FIELD + EXTERNAL_DIALOGUE_FIELD ,
-            "discussion": DISCUSSION_PROMPT + CONSIDERATIONS_PROMPT + considerations + CONCISE_PROMPT + FORMAT_PROMPT + INITIAL_THINKING_FIELD + ACCUSATION_FIELD + EXTERNAL_DIALOGUE_FIELD,
-            "vote": VOTE_PROMPT + CONSIDERATIONS_PROMPT + considerations + FORMAT_PROMPT + INITIAL_THINKING_FIELD + VOTE_FIELD,
-            "mission": MISSION_PROMPT + CONSIDERATIONS_PROMPT + considerations + FORMAT_PROMPT + INITIAL_THINKING_FIELD + VOTE_FIELD,
-            "accused": ACCUSED_PROMPT + CONSIDERATIONS_PROMPT + considerations + CONCISE_PROMPT + FORMAT_PROMPT + INITIAL_THINKING_FIELD + EXTERNAL_DIALOGUE_FIELD,
+            "propose": LEADER_PROMPT + " Mission size:" + str(mission_size) + standard  + TEAM_FIELD + EXTERNAL_DIALOGUE_FIELD ,
+            "discussion": DISCUSSION_PROMPT + standard + ACCUSATION_FIELD + EXTERNAL_DIALOGUE_FIELD,
+            "vote": VOTE_PROMPT + standard + VOTE_FIELD,
+            "mission": MISSION_PROMPT + standard  + VOTE_FIELD,
+            "accused": ACCUSED_PROMPT + standard + EXTERNAL_DIALOGUE_FIELD,
         }
 
         # Add the specific prompt based on role and game mode
