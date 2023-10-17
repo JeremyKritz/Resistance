@@ -40,13 +40,7 @@ class GameWindow:
         frame = ttk.Frame(self.root)
         frame.pack(pady=10)
 
-        self.game = Game(gui=self)
-
-        for player in self.game.players:
-            player_unit = PlayerUnit(frame, player)
-            player_unit.pack(side=tk.LEFT, padx=5, pady=5)
-            self.player_units.append(player_unit)
-            player.gui = player_unit
+        
 
         # Now, create and pack the canvas containing mission elements.
         self.canvas = tk.Canvas(self.root, bg='white', width=350, height=100)
@@ -62,6 +56,14 @@ class GameWindow:
         self.next_action_received = False
         self.start_game_button = tk.Button(self.root, text="Start Game", command=self.start_game)
         self.start_game_button.pack(pady=5)
+
+        self.game = Game(gui=self)
+
+        for player in self.game.players:
+            player_unit = PlayerUnit(frame, player)
+            player_unit.pack(side=tk.LEFT, padx=5, pady=5)
+            self.player_units.append(player_unit)
+            player.gui = player_unit
 
 
     def update_game_status(self, status):
@@ -86,7 +88,10 @@ class GameWindow:
         self.root.mainloop()
 
     def start_game(self):
+        #if skipping rd 1
+        self.round = 1
         for _ in range(len(MISSIONS)):
+            #if skipping rd 1
             self.round += 1
             self.round_label["text"] = f"Round: {self.round}"
             self.game.play_round()

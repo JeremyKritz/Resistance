@@ -11,15 +11,15 @@ class Player:
         self.role = role
         self.fellow_spies = fellow_spies if fellow_spies else []
         self.gui = None 
-        self.enableGPT = True
+        self.enableGPT = False
         self.gpt = GPTService()
-        self.internal_plan = "" #Consider having spies remember their own plans...
+        #self.internal_plan = "" #Consider having spies remember their own plans...
 
 
     def get_system_prompt(self):
         role_context = f"You are {self.name}, in the resistance."
         if self.role == 'spy':
-            role_context =  f"You are {self.name}, you are a spy. The other spy is {self.fellow_spies[0]}. {SPY_REMINDER}"
+            role_context =  f"You are {self.name}, you are a spy. The other spy is {self.fellow_spies[0]}."
         return SYSTEM_PROMPT_1 + role_context + SYSTEM_PROMPT_2
     
     def build_prompt(self, mode, mission_size=None, history=[]):
@@ -29,31 +29,21 @@ class Player:
         # Begin with the base prompt
         prompt = HISTORY_PROMPT + history_json_str + "\n"
 
-        resist_turn_specific_prompts = {
-            "propose": LEADER_PROMPT + " Mission size:" + str(mission_size) + CONCISE_PROMPT + FORMAT_PROMPT + TEAM_FIELD + EXTERNAL_DIALOGUE_FIELD,
-            "discussion": DISCUSSION_PROMPT + CONCISE_PROMPT + FORMAT_PROMPT + ACCUSATION_FIELD + EXTERNAL_DIALOGUE_FIELD,
-            "vote": VOTE_PROMPT + FORMAT_PROMPT + VOTE_FIELD,
-            "mission": MISSION_PROMPT + FORMAT_PROMPT + VOTE_FIELD,
-            "accused": ACCUSED_PROMPT + CONCISE_PROMPT + FORMAT_PROMPT + EXTERNAL_DIALOGUE_FIELD,
-        }
+        considerations = self.get_considerations(mode)
 
-        spy_turn_specific_prompts = {
-            "propose": LEADER_PROMPT + " Mission size:" + str(mission_size) + SPY_INTERNAL_PROMPT + CONCISE_PROMPT + SPY_LEADER_REMINDER + FORMAT_PROMPT + TEAM_FIELD + EXTERNAL_DIALOGUE_FIELD + INTERNAL_DIALOGUE_FIELD,
-            "discussion": DISCUSSION_PROMPT + SPY_INTERNAL_PROMPT + CONCISE_PROMPT + FORMAT_PROMPT + ACCUSATION_FIELD + EXTERNAL_DIALOGUE_FIELD + INTERNAL_DIALOGUE_FIELD,
-            "vote": VOTE_PROMPT + FORMAT_PROMPT + VOTE_FIELD,
-            "mission": MISSION_PROMPT + SPY_INTERNAL_PROMPT + FORMAT_PROMPT + VOTE_FIELD + INTERNAL_DIALOGUE_FIELD,
-            "accused": ACCUSED_PROMPT + SPY_INTERNAL_PROMPT + CONCISE_PROMPT + FORMAT_PROMPT + EXTERNAL_DIALOGUE_FIELD + INTERNAL_DIALOGUE_FIELD,
+
+        turn_specific_prompts = {
+            "propose": LEADER_PROMPT + " Mission size:" + str(mission_size) + CONSIDERATIONS_PROMPT + considerations + CONCISE_PROMPT + FORMAT_PROMPT + INITIAL_THINKING_FIELD + TEAM_FIELD + EXTERNAL_DIALOGUE_FIELD ,
+            "discussion": DISCUSSION_PROMPT + CONSIDERATIONS_PROMPT + considerations + CONCISE_PROMPT + FORMAT_PROMPT + INITIAL_THINKING_FIELD + ACCUSATION_FIELD + EXTERNAL_DIALOGUE_FIELD,
+            "vote": VOTE_PROMPT + CONSIDERATIONS_PROMPT + considerations + FORMAT_PROMPT + INITIAL_THINKING_FIELD + VOTE_FIELD,
+            "mission": MISSION_PROMPT + CONSIDERATIONS_PROMPT + considerations + FORMAT_PROMPT + INITIAL_THINKING_FIELD + VOTE_FIELD,
+            "accused": ACCUSED_PROMPT + CONSIDERATIONS_PROMPT + considerations + CONCISE_PROMPT + FORMAT_PROMPT + INITIAL_THINKING_FIELD + EXTERNAL_DIALOGUE_FIELD,
         }
 
         # Add the specific prompt based on role and game mode
-        if self.role == 'spy':
-            if mode in ["vote", "mission"]:
-                prompt += "Your plan was " + self.internal_plan + "\n"
-            prompt = prompt + spy_turn_specific_prompts[mode] + CLOSE_PROMPT + spy_reminder
-        else:
-            prompt = prompt + resist_turn_specific_prompts[mode] + CLOSE_PROMPT
 
-        return prompt
+        return prompt + turn_specific_prompts[mode] + CLOSE_PROMPT
+
 
 
     def propose_team(self, players, mission_size, history):
@@ -70,9 +60,9 @@ class Player:
             team = parsed_data["team"]
             external_reasoning = parsed_data["external"] 
             
-            if self.role == 'spy':
-                self.internal_plan = internal_reasoning = parsed_data["internal"]
-                print(f"{self.name} (internal): {internal_reasoning}")
+            
+            self.internal_plan = internal_reasoning = parsed_data["internal"]
+            print(f"{self.name} (internal): {internal_reasoning}")
 
         else:
             team_names = [player.name for player in players]
@@ -100,9 +90,9 @@ class Player:
             parsed_data = json.loads(gpt_response)
             external_reasoning = parsed_data["external"] 
             suspected_players = parsed_data.get("suspect", [""])
-            if self.role == 'spy':
-                self.internal_plan = internal_reasoning = parsed_data["internal"]
-                print(f"{self.name} (internal): {internal_reasoning}")
+            
+            self.internal_plan = internal_reasoning = parsed_data["internal"]
+            print(f"{self.name} (internal): {internal_reasoning}")
             
 
         else:
@@ -115,19 +105,46 @@ class Player:
 
 
         return external_reasoning, suspected_players
+    
+
+    def respond(self, history):
+        
+        prompt = self.build_prompt("accused", history=history)
+        internal_reasoning = None
+
+        if self.enableGPT:
+            gpt_response = self.gpt.call_gpt_player(self.get_system_prompt(), prompt)  
+            parsed_data = json.loads(gpt_response)
+
+            external_reasoning = parsed_data["external"]
+
+            self.internal_plan = internal_reasoning = parsed_data["internal"]
+            print(f"{self.name} (internal): {internal_reasoning}")
+
+        else:
+            external_reasoning = "I have done nothing wrong. Trust me."
+            if self.role == 'spy':
+                internal_reasoning = "I hope I decieved them."
+
+        self.gui.update_dialogue(external_reasoning, internal_reasoning)
+
+        return external_reasoning
 
 
     def vote_on_team(self, history):   
         prompt = self.build_prompt("vote", history=history)
+        internal_reasoning = None
         if self.role == 'spy':
             print (prompt)
         if self.enableGPT:
             gpt_response = self.gpt.call_gpt_player(self.get_system_prompt(), prompt)  
             parsed_data = json.loads(gpt_response)
             vote = parsed_data["vote"]
+            self.internal_plan = internal_reasoning = parsed_data["internal"]
         else:
-            vote = random.choice(['pass', 'fail']) 
+            vote = random.choice(['pass', 'pass', 'fail']) 
         self.gui.update_vote(vote)
+        self.gui.update_dialogue(None, internal_reasoning)
         return vote
 
 
@@ -169,9 +186,9 @@ class Player:
             parsed_data = json.loads(gpt_response)
 
             external_reasoning = parsed_data["external"]
-            if self.role == 'spy':
-                self.internal_plan = internal_reasoning = parsed_data["internal"]
-                print(f"{self.name} (internal): {internal_reasoning}")
+            
+            self.internal_plan = internal_reasoning = parsed_data["internal"]
+            print(f"{self.name} (internal): {internal_reasoning}")
 
         else:
             external_reasoning = "I have done nothing wrong. Trust me."
@@ -181,6 +198,34 @@ class Player:
         self.gui.update_dialogue(external_reasoning, internal_reasoning)
 
         return external_reasoning
+
+
+
+
+    def get_considerations(self, mode):
+        SPY_CONSIDERATIONS = {
+            "propose": SPY_PROPOSAL_CONSIDERATIONS,
+            "discussion": SPY_DISCUSSION_CONSIDERATIONS,
+            "vote": SPY_VOTE_CONSIDERATIONS,
+            "mission": SPY_EXECUTE_MISSION_CONSIDERATIONS,
+            "accused": DEFENSE_CONSIDERATIONS
+        }
+
+        RESISTANCE_CONSIDERATIONS = {
+            "propose":RESIST_GENERAL_CONSIDERATIONS,
+            "discussion": RESIST_GENERAL_CONSIDERATIONS,
+            "vote": RESIST_GENERAL_CONSIDERATIONS,  
+            "accused": DEFENSE_CONSIDERATIONS
+            # Add more modes here as needed
+        }
+
+        if self.role == "spy":
+            considerations = SPY_CONSIDERATIONS.get(mode)
+        else:
+            considerations = RESISTANCE_CONSIDERATIONS.get(mode)
+
+        return considerations + FINAL_CONSIDERATIONS
+
 
 """
 Memory is super vital...

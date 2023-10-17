@@ -48,10 +48,10 @@ class PlayerUnit(ttk.Frame):
 
 
         # Internal Dialogue ScrolledText (Only for Spies) with a title
-        if self.player.role == 'spy':
-            ttk.Label(self, text="Internal Dialogue", font=("Arial", 12, "italic")).grid(row=5, column=0, sticky=tk.W, padx=5, pady=5)
-            self.internal_dialogue_box = scrolledtext.ScrolledText(self, width=30, height=10, wrap=tk.WORD)  # Reduce width
-            self.internal_dialogue_box.grid(row=6, column=0, padx=5, pady=5)
+
+        ttk.Label(self, text="Internal Dialogue", font=("Arial", 12, "italic")).grid(row=5, column=0, sticky=tk.W, padx=5, pady=5)
+        self.internal_dialogue_box = scrolledtext.ScrolledText(self, width=30, height=10, wrap=tk.WORD)  # Reduce width
+        self.internal_dialogue_box.grid(row=6, column=0, padx=5, pady=5)
 
 
     def insert_word(self, dialogue_box, words, index=0, callback=None):

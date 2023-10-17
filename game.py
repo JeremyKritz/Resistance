@@ -26,11 +26,12 @@ class Game:
             f.write("=====================\n\n")
 
         self.setup_players()
+        self.add_passing_rd_1()
 
     def setup_players(self):
         #roles = ['spy'] * NUM_SPIES + ['good'] * NUM_RESISTANCE
         #random.shuffle(roles)
-        roles = ['spy', 'good', 'good', 'spy', 'good'] #hardcoded for now (they dont remember past games...)
+        roles = ['good', 'spy', 'good', 'spy', 'good'] #hardcoded for now (they dont remember past games...)
         spy_names = []
         for name, role in zip(PLAYER_NAMES, roles):
             player = Player(name, role)
@@ -43,7 +44,7 @@ class Game:
                 player.fellow_spies = [spy for spy in spy_names if spy != player.name]
             else:
                 player.fellow_spies = None
-
+        
 
 
     def play_round(self):
@@ -287,21 +288,50 @@ class Game:
 
         cleaned_history = clean_data(history_copy)
 
-        # Calculate passed and failed missions
-        passed_missions = sum([1 for round_obj in cleaned_history["rounds"] if round_obj.get("mission_outcome") == "pass"])
-        failed_missions = sum([1 for round_obj in cleaned_history["rounds"] if round_obj.get("mission_outcome") == "fail"])
+        spy_summary = ""
 
-        total_rounds = len(cleaned_history["rounds"])
-        remaining_rounds = 5 - (passed_missions + failed_missions)
-        missions_to_fail = 3 - failed_missions
+        # # Calculate passed and failed missions
+        # passed_missions = sum([1 for round_obj in cleaned_history["rounds"] if round_obj.get("mission_outcome") == "pass"])
+        # failed_missions = sum([1 for round_obj in cleaned_history["rounds"] if round_obj.get("mission_outcome") == "fail"])
 
-        # Construct the summary
-            # Construct the summary for spies
+        # total_rounds = len(cleaned_history["rounds"])
+        # remaining_rounds = 5 - (passed_missions + failed_missions)
+        # missions_to_fail = 3 - failed_missions
 
-        spy_summary = f"This is Rd {total_rounds}. {missions_to_fail} of the remaining {remaining_rounds} missions must fail!"
-        if remaining_rounds == missions_to_fail:
-            spy_summary += " THIS MISSION MUST FAIL OR YOU WILL LOSE AND THE GAME WILL END!" #Turns out this is required lol
+        # # Construct the summary
+        #     # Construct the summary for spies
+
+        # spy_summary = f"This is Rd {total_rounds}. {missions_to_fail} of the remaining {remaining_rounds} missions must fail!"
+        # if remaining_rounds == missions_to_fail:
+        #     spy_summary += " THIS MISSION MUST FAIL OR YOU WILL LOSE AND THE GAME WILL END!" #Turns out this is required lol
 
         # Convert to string and remove single quotation marks
         history_str = str(cleaned_history).replace("'", "")
         return [history_str, spy_summary]
+    
+
+    def add_passing_rd_1(self):
+        self.full_game["rounds"].append(
+              {
+                  "round": 1,
+                  "mission_player_count": 2,
+                  "proposed_teams": [
+                      {
+                          "leader": "Alice",
+                          "team_members": ["Alice", "Bob"],
+                          "discussion_summary": "All players, Alice, Bob, Claire, Dave, and Ed agree to proceed with the mission, expressing no suspicion due to lack of information.",
+                          "votes": [
+                              {"ALICE": "pass"},
+                              {"BOB": "pass"},
+                              {"CLAIRE": "pass"},
+                              {"DAVE": "pass"},
+                              {"ED": "pass"}
+                          ]
+                      }
+                  ],
+                  "mission_team": ["Alice", "Bob"],
+                  "mission_outcome": "pass",
+                  "sabotages": 0
+              })
+        self.rd_idx = self.leader_idx = 1
+        self.gui.update_mission(0, "pass")
