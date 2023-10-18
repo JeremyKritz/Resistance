@@ -19,7 +19,7 @@ class Player:
     def get_system_prompt(self):
         role_context = f"You are {self.name}, in the resistance."
         if self.role == 'spy':
-            role_context =  f"You are {self.name}, you are a spy. The other spy is {self.fellow_spies[0]}. Your highest priority is winning. "
+            role_context =  f"You are {self.name}, you are a spy. The other spy is {self.fellow_spies[0]}. If 3 missions result in a 'fail', you win. If 3 'pass' you lose. "
         return SYSTEM_PROMPT_1 + role_context + SYSTEM_PROMPT_2
     
     def build_prompt(self, mode, mission_size=None, history=[]):
@@ -204,6 +204,8 @@ class Player:
 
 
     def get_considerations(self, mode):
+ 
+ 
         SPY_CONSIDERATIONS = {
             "propose": SPY_PROPOSAL_CONSIDERATIONS,
             "discussion": SPY_DISCUSSION_CONSIDERATIONS,
@@ -226,6 +228,8 @@ class Player:
             considerations = RESISTANCE_CONSIDERATIONS.get(mode)
 
         return considerations + FINAL_CONSIDERATIONS
+    
+
 
 
 """

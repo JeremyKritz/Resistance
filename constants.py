@@ -11,6 +11,7 @@ PLAYER_NAMES = ['Alice', 'Bob', 'Claire', 'Dave', 'Ed']
 SYSTEM_PROMPT_1 = ("You are a highly analytical AI playing the 5-player game Resistance, with 2 spies. "  #consider adding more about team vote
            #"Missions are proposed by a leader. Leader does not convey any additional abilities on a mission." +
             "Num players on each mission - 2, 3, 2, 3, 3 " 
+            "Its best of 5, so there will be 5 rds max, 3 rds min. "
             "You will get game history in JSON " 
             "You dont know these players ")
 
@@ -47,31 +48,38 @@ CONDENSE_SYSTEM_PROMPT = ("You will be provided with dialogue from a round of th
     "Summarize into as few tokens as possible, while keeping all relevant info.")
 
 
-CONSIDERATIONS_PROMPT = " Give initial thinking first in 'internal' field. Reason through the following (Be consise as possible, use min tokens): "
 
-FINAL_CONSIDERATIONS = "Anything else impprtant to think through?"   #"Any last thoughts?"
+CONSIDERATIONS_PROMPT = (" Give initial thinking first in 'internal' field. Reason through the following, thinking step by step (Brevity important. Use few words as possible):"
+"What is your initial plan?"
+"Does the game history back up this plan?  "
+)
+
+FINAL_CONSIDERATIONS = "Based on this, do you need to adjust the plan? "   #"Any last thoughts?"
+
 
 SPY_VOTE_CONSIDERATIONS = (
-    "Whats the score? If either team gets to 3 they win. What will the score be after this round? "
     "Will this vote make you look suspicious? "
+    "Whats the score? If either team gets to 3 they win. What will the score be after this round? "
+    "Will losing this round cause you to lose? "
+    "Does that outweigh any potential suspicion? "
 )
 
 
 SPY_EXECUTE_MISSION_CONSIDERATIONS = (
     "Whats the score? If either team gets to 3 they win. What will the score be after this round? "
+    "Will losing this round cause you to lose? "
     "If you fail the vote, can you blame someone else? "
-    "How will this set you up for future rounds? "
+    "How will this set you up for future rounds (or will this end the game)? "
 )
 
 SPY_PROPOSAL_CONSIDERATIONS = (
-    "Do you want mission to pass or fail? "
     "Whats the score? If either team gets to 3 they win. What will the score be after this round? "
-    "If pass, can you win in remaining rounds? "
-    "If fail, can you plausibly blame someone? "
+    "Will losing this round cause you to lose? "
+    "Based on that, do you want mission to pass or fail? "
+    "You 'know that you are innocent' does this change anything? "
+    "Based on that, do you want mission to pass or fail? "
     "How will this set you up for future rounds? "
-    "Who might suspect you? Can you blame them? "
-    "Will this team proposal look suspicious? "
-    "Do you want to change the plan? "
+    "Imagine you're a resistance player, will this team proposal look suspicious? "
 )
 
 
@@ -83,19 +91,21 @@ DEFENSE_CONSIDERATIONS = (
 
 
 SPY_DISCUSSION_CONSIDERATIONS = (
-    "Do you want this mission to proceed? "
+    "You 'know that you are innocent', does this change your plan? "
     "Does it look like you are trying to find the spy? "
     "Is it better to defend the other spy or suspect him? "
+    "Who can you plausibly accuse of being the spy? "
     "Who might suspect you? Can you blame them? "
-    "Will this action look suspicious? "
+    "Whats the score? If either team gets to 3 they win. What will the score be after this round? "
+    "Will losing this round cause you to lose the game? "
+    "Based on that, does that outweigh any potential suspicion? "
 )
 
 RESIST_GENERAL_CONSIDERATIONS = (
-    "You are innocent, so half the remaining players are spies. Who are the 2 you most suspect "
+    "You are innocent, so half the other players are spies. Who are the 2 you most suspect? "
 )
 
 RESIST_VOTE_CONSIDERATIONS = ("Based on the discussion, do you think this team will be successful?")
-
 
 
 

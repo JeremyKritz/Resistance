@@ -90,7 +90,7 @@ class GameWindow:
     def start_game(self):
         #if skipping rd 1
         self.round = 1
-        for _ in range(len(MISSIONS)  -1): #-1 if skipped rd 1
+        for _ in range(len(MISSIONS)  -1 ): #-1 if skipped rd 1
             #if skipping rd 1
             self.round += 1
             self.round_label["text"] = f"Round: {self.round}"

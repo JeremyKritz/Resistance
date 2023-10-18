@@ -26,12 +26,13 @@ class Game:
             f.write("=====================\n\n")
 
         self.setup_players()
-        self.add_passing_rd_1()
+        self.add_rd_1()
+        #self.add_rd_2()
 
     def setup_players(self):
         #roles = ['spy'] * NUM_SPIES + ['good'] * NUM_RESISTANCE
         #random.shuffle(roles)
-        roles = ['spy', 'good', 'spy', 'good', 'good'] #hardcoded for now (they dont remember past games...)
+        roles = ['good', 'spy', 'spy', 'good', 'good'] #hardcoded for now (they dont remember past games...)
         spy_names = []
         for name, role in zip(PLAYER_NAMES, roles):
             player = Player(name, role)
@@ -310,7 +311,7 @@ class Game:
         return [history_str, spy_summary]
     
 
-    def add_passing_rd_1(self):
+    def add_rd_1(self):
         self.full_game["rounds"].append(
               {
                   "round": 1,
@@ -335,3 +336,57 @@ class Game:
               })
         self.rd_idx = self.leader_idx = 1
         self.gui.update_mission(0, "pass")
+
+
+
+    def add_rd_2(self):
+        self.full_game["rounds"].append(
+               {
+                "round": 2,
+                "mission_player_count": 3,
+                "proposed_teams": [
+                    {
+                        "leader": "Bob",
+                        "team_members": ["Alice", "Bob", "Dave"],
+                        "discussion_summary": "Bob selected Alice, Dave, and himself for the mission. Alice, Claire, Dave, and Ed agreed with this team choice as Alice and Bob previously completed a successful mission and it would be useful to gain more information about Dave. All vote to proceed.",
+                        "votes": [
+                            {"ALICE": "pass"},
+                            {"BOB": "pass"},
+                            {"CLAIRE": "pass"},
+                            {"DAVE": "pass"},
+                            {"ED": "pass"}
+                        ]
+                    }
+                ],
+                "mission_team": ["Alice", "Bob", "Dave"],
+                "mission_outcome": "pass",
+                "sabotages": 0
+            })
+        self.rd_idx = self.leader_idx = 2
+        self.gui.update_mission(1, "pass")
+
+
+"""
+{
+                "round": 2,
+                "mission_player_count": 3,
+                "proposed_teams": [
+                    {
+                    "leader": "Bob",
+                    "team_members": ["Alice", "Bob", "Claire"],
+                    "discussion_summary": "Bob, Alice, and Claire in favor of a mission based on previous success while introducing Claire. Dave and Ed back this decision but urge vigilance and suspicion of sabotage or traitors, mentioning the lack of information on Ed and Daves actions.",
+                    "votes": [
+                        {"ALICE": "pass"},
+                        {"BOB": "pass"},
+                        {"CLAIRE": "pass"},
+                        {"DAVE": "pass"},
+                        {"ED": "pass"}
+                    ]
+                    }
+                ],
+                "mission_team": ["Alice", "Bob", "Claire"],
+                "mission_outcome": "fail",
+                "sabotages": 1
+            }
+
+"""
