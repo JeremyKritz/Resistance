@@ -32,7 +32,7 @@ class Game:
     def setup_players(self):
         #roles = ['spy'] * NUM_SPIES + ['good'] * NUM_RESISTANCE
         #random.shuffle(roles)
-        roles = ['good', 'spy', 'spy', 'good', 'good'] #hardcoded for now (they dont remember past games...)
+        roles = [ 'spy', 'good', 'good',  'spy', 'good'] #hardcoded for now (they dont remember past games...)
         spy_names = []
         for name, role in zip(PLAYER_NAMES, roles):
             player = Player(name, role)
@@ -331,11 +331,11 @@ class Game:
                       }
                   ],
                   "mission_team": ["Alice", "Bob"],
-                  "mission_outcome": "pass", #hmm
-                  "sabotages": 0
+                  "mission_outcome": "fail", #hmm
+                  "sabotages": 1
               })
         self.rd_idx = self.leader_idx = 1
-        self.gui.update_mission(0, "pass")
+        self.gui.update_mission(0, "fail")
 
 
 

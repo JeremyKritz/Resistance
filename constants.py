@@ -86,6 +86,7 @@ SPY_PROPOSAL_CONSIDERATIONS = (
 DEFENSE_CONSIDERATIONS = (
     "Is the suspicion reasonable? "
     "Have you done anything to demonstrate your innocence? "
+    "Can you make any specific accusations? "
     "Who else seems like they could be the spy? "
 )
 
@@ -94,8 +95,7 @@ SPY_DISCUSSION_CONSIDERATIONS = (
     "You 'know that you are innocent', does this change your plan? "
     "Does it look like you are trying to find the spy? "
     "Is it better to defend the other spy or suspect him? "
-    "Who can you plausibly accuse of being the spy? "
-    "Who might suspect you? Can you blame them? "
+    "Can you make any specific accusations? "
     "Whats the score? If either team gets to 3 they win. What will the score be after this round? "
     "Will losing this round cause you to lose the game? "
     "Based on that, does that outweigh any potential suspicion? "
