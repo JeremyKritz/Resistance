@@ -13,7 +13,7 @@ class Player:
         self.gui = None 
         self.enableGPT = True
         self.gpt = GPTService()
-        #self.internal_plan = "" #Consider having spies remember their own plans...
+        self.internal_plan = "" #Consider having spies remember their own plans...
 
 
     def get_system_prompt(self):
@@ -26,10 +26,14 @@ class Player:
         history_json_str = history[0]
         spy_reminder = history[1]
 
-        # Begin with the base prompt
-        prompt = HISTORY_PROMPT + history_json_str + "\n"
+        continuity = f"Your most recent internal thinking: {self.internal_plan} "
 
-        considerations = self.get_considerations(mode)
+
+        # Begin with the base prompt
+        prompt = HISTORY_PROMPT + history_json_str + "\n" + continuity
+
+
+        considerations = self.get_role_specific_considerations(mode)
         standard = CONSIDERATIONS_PROMPT + considerations + CONCISE_PROMPT + FORMAT_PROMPT + INITIAL_THINKING_FIELD 
 
 
@@ -43,7 +47,10 @@ class Player:
 
         # Add the specific prompt based on role and game mode
 
-        return prompt + turn_specific_prompts[mode] + CLOSE_PROMPT
+        full_prompt =  prompt + turn_specific_prompts[mode] + CLOSE_PROMPT
+        if self.role == 'spy':
+            return full_prompt + spy_reminder
+        return full_prompt
 
 
 
@@ -203,29 +210,29 @@ class Player:
 
 
 
-    def get_considerations(self, mode):
+    def get_role_specific_considerations(self, mode):
  
  
-        SPY_CONSIDERATIONS = {
-            "propose": SPY_PROPOSAL_CONSIDERATIONS,
-            "discussion": SPY_DISCUSSION_CONSIDERATIONS,
-            "vote": SPY_VOTE_CONSIDERATIONS,
-            "mission": SPY_EXECUTE_MISSION_CONSIDERATIONS,
-            "accused": DEFENSE_CONSIDERATIONS
+        SPY_TURN_CONSIDERATIONS = {
+            "propose": SPY_PROPOSAL_CONSIDERATIONS + SPY_GENERAL_CONSIDERATIONS,
+            "discussion": SPY_GENERAL_CONSIDERATIONS,
+            "vote": "",
+            "mission": "",
+            "accused": SPY_GENERAL_CONSIDERATIONS
         }
 
-        RESISTANCE_CONSIDERATIONS = {
-            "propose":RESIST_GENERAL_CONSIDERATIONS,
-            "discussion": RESIST_GENERAL_CONSIDERATIONS,
-            "vote": RESIST_GENERAL_CONSIDERATIONS,  
-            "accused": DEFENSE_CONSIDERATIONS
-            # Add more modes here as needed
-        }
+        # RESISTANCE_TURN_CONSIDERATIONS = {
+        #     "propose":RESIST_GENERAL_CONSIDERATIONS,
+        #     "discussion": RESIST_GENERAL_CONSIDERATIONS,
+        #     "vote": RESIST_GENERAL_CONSIDERATIONS,  
+        #     "accused": RESIST_GENERAL_CONSIDERATIONS
+        #     # Add more modes here as needed
+        # }
 
         if self.role == "spy":
-            considerations = SPY_CONSIDERATIONS.get(mode)
-        else:
-            considerations = RESISTANCE_CONSIDERATIONS.get(mode)
+            considerations = SPY_TURN_CONSIDERATIONS.get(mode)
+        else: 
+            considerations = RESIST_GENERAL_CONSIDERATIONS  #  + RESISTANCE_TURN_CONSIDERATIONS.get(mode)
 
         return considerations + FINAL_CONSIDERATIONS
     

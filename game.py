@@ -27,7 +27,7 @@ class Game:
 
         self.setup_players()
         self.add_rd_1()
-        #self.add_rd_2()
+        self.add_rd_2()
 
     def setup_players(self):
         #roles = ['spy'] * NUM_SPIES + ['good'] * NUM_RESISTANCE
@@ -291,22 +291,22 @@ class Game:
 
         spy_summary = ""
 
-        # # Calculate passed and failed missions
-        # passed_missions = sum([1 for round_obj in cleaned_history["rounds"] if round_obj.get("mission_outcome") == "pass"])
-        # failed_missions = sum([1 for round_obj in cleaned_history["rounds"] if round_obj.get("mission_outcome") == "fail"])
+        # Calculate passed and failed missions
+        passed_missions = sum([1 for round_obj in cleaned_history["rounds"] if round_obj.get("mission_outcome") == "pass"])
+        failed_missions = sum([1 for round_obj in cleaned_history["rounds"] if round_obj.get("mission_outcome") == "fail"])
 
-        # total_rounds = len(cleaned_history["rounds"])
-        # remaining_rounds = 5 - (passed_missions + failed_missions)
-        # missions_to_fail = 3 - failed_missions
+        total_rounds = len(cleaned_history["rounds"])
+        remaining_rounds = 5 - (passed_missions + failed_missions)
+        missions_to_fail = 3 - failed_missions
 
-        # # Construct the summary
-        #     # Construct the summary for spies
+        # Construct the summary
+            # Construct the summary for spies
 
-        # spy_summary = f"This is Rd {total_rounds}. {missions_to_fail} of the remaining {remaining_rounds} missions must fail!"
-        # if remaining_rounds == missions_to_fail:
-        #     spy_summary += " THIS MISSION MUST FAIL OR YOU WILL LOSE AND THE GAME WILL END!" #Turns out this is required lol
+        spy_summary = f"This is Rd {total_rounds}. {missions_to_fail} of the remaining {remaining_rounds} missions must fail!"
+        if remaining_rounds == missions_to_fail:
+            spy_summary += " THIS MISSION MUST FAIL OR YOU WILL LOSE AND THE GAME WILL END!" #Turns out this is required lol
 
-        # Convert to string and remove single quotation marks
+
         history_str = str(cleaned_history).replace("'", "")
         return [history_str, spy_summary]
     
@@ -331,16 +331,16 @@ class Game:
                       }
                   ],
                   "mission_team": ["Alice", "Bob"],
-                  "mission_outcome": "fail", #hmm
-                  "sabotages": 1
+                  "mission_outcome": "pass", #hmm
+                  "sabotages": 0
               })
         self.rd_idx = self.leader_idx = 1
-        self.gui.update_mission(0, "fail")
-
-
+        self.gui.update_mission(0, "pass")
 
     def add_rd_2(self):
         self.full_game["rounds"].append(
+
+
                {
                 "round": 2,
                 "mission_player_count": 3,
@@ -348,7 +348,7 @@ class Game:
                     {
                         "leader": "Bob",
                         "team_members": ["Alice", "Bob", "Dave"],
-                        "discussion_summary": "Bob selected Alice, Dave, and himself for the mission. Alice, Claire, Dave, and Ed agreed with this team choice as Alice and Bob previously completed a successful mission and it would be useful to gain more information about Dave. All vote to proceed.",
+                        "discussion_summary": "Bob selected Alice, Dave, and himself for the mission...",
                         "votes": [
                             {"ALICE": "pass"},
                             {"BOB": "pass"},
@@ -361,32 +361,18 @@ class Game:
                 "mission_team": ["Alice", "Bob", "Dave"],
                 "mission_outcome": "pass",
                 "sabotages": 0
-            })
+            }
+            
+            
+            
+            
+            
+            )
         self.rd_idx = self.leader_idx = 2
         self.gui.update_mission(1, "pass")
 
 
-"""
-{
-                "round": 2,
-                "mission_player_count": 3,
-                "proposed_teams": [
-                    {
-                    "leader": "Bob",
-                    "team_members": ["Alice", "Bob", "Claire"],
-                    "discussion_summary": "Bob, Alice, and Claire in favor of a mission based on previous success while introducing Claire. Dave and Ed back this decision but urge vigilance and suspicion of sabotage or traitors, mentioning the lack of information on Ed and Daves actions.",
-                    "votes": [
-                        {"ALICE": "pass"},
-                        {"BOB": "pass"},
-                        {"CLAIRE": "pass"},
-                        {"DAVE": "pass"},
-                        {"ED": "pass"}
-                    ]
-                    }
-                ],
-                "mission_team": ["Alice", "Bob", "Claire"],
-                "mission_outcome": "fail",
-                "sabotages": 1
-            }
 
-"""
+
+
+

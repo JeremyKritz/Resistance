@@ -13,7 +13,10 @@ SYSTEM_PROMPT_1 = ("You are a highly analytical AI playing the 5-player game Res
             "Num players on each mission - 2, 3, 2, 3, 3 " 
             "Its best of 5, so there will be 5 rds max, 3 rds min. "
             "You will get game history in JSON " 
-            "You dont know these players ")
+            "The third proposed mission will proceed with no discussion."
+            "You dont know these players "
+            "Do not refer to yourself in the third-person "
+            )
 
 SYSTEM_PROMPT_2 = "Respond with JSON, all requested keys and no additions or alterations. "
 
@@ -27,13 +30,17 @@ HISTORY_PROMPT = "Game Summary: \n" #GPT understands newline chars...
 # SPY_LEADER_REMINDER = " If you want mission to fail you can secretly fail it, so consider whether you want both spies on mission, given suspicion towards failed team " #this one is a bit like cheating...
 
 LEADER_PROMPT = "TASK Propose a team, explain why."
+
+
+
+
 DISCUSSION_PROMPT = "TASK Share public thoughts on proposed team, and if it should proceed, or if next player should propose mission. You may choose to throw suspicion on any players. " #Proposed team is in history...
 VOTE_PROMPT = "TASK Submit your vote on the proposed team (Vote is simultaneous and public). (Response must have the vote key)" 
 MISSION_PROMPT = "TASK You are a spy on the mission. Vote to pass or fail. (Vote is secret)."
 ACCUSED_PROMPT = "TASK You have been called out, defend yourself."
 # SPY_INTERNAL_PROMPT = " Also give internal dialogue - your real plan. "
 
-CONCISE_PROMPT = "Brevity important. Use few words as possible. Consider events of previous rounds. Dont waste tokens."
+CONCISE_PROMPT = "Brevity important. Use few words as possible. Dont waste tokens."
 
 FORMAT_PROMPT = " KEYS: "
 INITIAL_THINKING_FIELD = "internal: *(string) considerations before the action* "
@@ -49,63 +56,66 @@ CONDENSE_SYSTEM_PROMPT = ("You will be provided with dialogue from a round of th
 
 
 
-CONSIDERATIONS_PROMPT = (" Give initial thinking first in 'internal' field. Reason through the following, thinking step by step (Brevity important. Use few words as possible):"
-"What is your initial plan?"
-"Does the game history back up this plan?  "
+CONSIDERATIONS_PROMPT = (" Give initial thinking first in 'internal' field. Reason through the following before making an action (Be concise. Use few words as possible, no need to repeat prompts): "
+    "Based on current task, what do you need to make the best decision? "
+    "Analyze the results of previous results and rounds - what can you determine? "
+    "Whats the score? If either team gets to 3 they win. What will the score be after this round? "
+    "If you lose this round, do you lose the game? Does this change priorities? "
+    "Do you need to adjust your previous thinking based on any new info? "
+    "Do you have a plan for the next phases / rounds? "
 )
 
-FINAL_CONSIDERATIONS = "Based on this, do you need to adjust the plan? "   #"Any last thoughts?"
+
+
+
+FINAL_CONSIDERATIONS = ("Take care to not refer to yourself in third-person. "
+    "With all this in mind, choose an action. ")   #"Any last thoughts?"
 
 
 SPY_VOTE_CONSIDERATIONS = (
-    "Will this vote make you look suspicious? "
-    "Whats the score? If either team gets to 3 they win. What will the score be after this round? "
-    "Will losing this round cause you to lose? "
-    "Does that outweigh any potential suspicion? "
-)
+    "If this mission has no spies, and proceeds, will you lose? ")
 
 
 SPY_EXECUTE_MISSION_CONSIDERATIONS = (
-    "Whats the score? If either team gets to 3 they win. What will the score be after this round? "
-    "Will losing this round cause you to lose? "
-    "If you fail the vote, can you blame someone else? "
-    "How will this set you up for future rounds (or will this end the game)? "
 )
 
 SPY_PROPOSAL_CONSIDERATIONS = (
-    "Whats the score? If either team gets to 3 they win. What will the score be after this round? "
-    "Will losing this round cause you to lose? "
-    "Based on that, do you want mission to pass or fail? "
-    "You 'know that you are innocent' does this change anything? "
-    "Based on that, do you want mission to pass or fail? "
-    "How will this set you up for future rounds? "
-    "Imagine you're a resistance player, will this team proposal look suspicious? "
+    "Do you want mission to pass or fail? "
+    "If fail, is there a resistance player who can take the fall? "
+    "Is there a good reason to include the other spy on this mission? "  #if you plan to fail it... might be cheating
 )
 
 
-DEFENSE_CONSIDERATIONS = (
-    "Is the suspicion reasonable? "
-    "Have you done anything to demonstrate your innocence? "
-    "Can you make any specific accusations? "
-    "Who else seems like they could be the spy? "
+
+
+
+SPY_DEFENSE_CONSIDERATIONS = (
+    ""
 )
 
 
-SPY_DISCUSSION_CONSIDERATIONS = (
-    "You 'know that you are innocent', does this change your plan? "
-    "Does it look like you are trying to find the spy? "
-    "Is it better to defend the other spy or suspect him? "
-    "Can you make any specific accusations? "
-    "Whats the score? If either team gets to 3 they win. What will the score be after this round? "
-    "Will losing this round cause you to lose the game? "
-    "Based on that, does that outweigh any potential suspicion? "
+
+SPY_GENERAL_CONSIDERATIONS = (
+    "Is it time to make a specific accusation? "
+    "If so, what specific evidence can you use to make a convincing case? "
+    "Can you use anyones words or actions against them? "
+    "The other team doesnt know who other spy is, is it better to defend or suspect them? "
+    "What would a resistance player do in this situation "
+    "Imagine you're a resistance player, would you find your actions suspicious or convincing? "
 )
+
+
+
 
 RESIST_GENERAL_CONSIDERATIONS = (
+    "Analyze the discussions that have occurred, anything convincing, or suspicious?  "
     "You are innocent, so half the other players are spies. Who are the 2 you most suspect? "
+    "Can you craft a specific accusation? "
 )
 
-RESIST_VOTE_CONSIDERATIONS = ("Based on the discussion, do you think this team will be successful?")
+
+
+#RESIST_VOTE_CONSIDERATIONS = ("Based on the discussion, do you think this team will be successful?")
 
 
 

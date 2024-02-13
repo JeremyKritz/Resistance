@@ -21,35 +21,34 @@ class GameWindow:
         self.round = 0
 
         self.round_label = ttk.Label(self.root, text="Round: 0", font=("Arial", 16, "bold"))
-        self.round_label.pack(pady=10)
+        self.round_label.pack(pady=7)
 
         # Status Bar at the top
-        self.status_bar = ttk.Label(self.root, text="Game Status: ", font=("Arial", 16, "bold"), relief=tk.SUNKEN, anchor=tk.W)
-        self.status_bar.pack(fill=tk.X, pady=10)
+        self.status_bar = ttk.Label(self.root, text="                                 Game Status: ", font=("Arial", 16, "bold"), relief=tk.SUNKEN, anchor=tk.W)
+        self.status_bar.pack(fill=tk.X, pady=7)
 
         # Current Leader Label
         self.current_leader_label = ttk.Label(self.root, text="Current Leader: None", font=("Arial", 16, "bold"))
-        self.current_leader_label.pack(pady=10)
+        self.current_leader_label.pack(pady=7)
 
         # Current Proposed Team Label
         self.proposed_team_label = ttk.Label(self.root, text="Proposed Team: None", font=("Arial", 16, "bold"))
-        self.proposed_team_label.pack(pady=10)
+        self.proposed_team_label.pack(pady=7)
 
         # Create Player Elements:
         self.player_units = []
         frame = ttk.Frame(self.root)
-        frame.pack(pady=10)
+        frame.pack(pady=7)
 
         
-
-        # Now, create and pack the canvas containing mission elements.
-        self.canvas = tk.Canvas(self.root, bg='white', width=350, height=100)
-        self.canvas.pack(pady=10)
+        self.canvas = tk.Canvas(self.root, bg='white', width=350, height=60)  # Reduced height
+        self.canvas.pack(pady=7)
 
         # Create Mission Elements:
         self.mission_elements = []
         for idx, _ in enumerate(MISSIONS):
-            self.mission_elements.append(self.MissionElement(self.canvas, 40 + idx*35, 50))
+            self.mission_elements.append(self.MissionElement(self.canvas, 40 + idx*35, 20))  # Adjusted y-coordinate
+
 
         self.next_action_button = tk.Button(self.root, text="Next Action", command=self.next_action)
         self.next_action_button.pack(pady=5)
@@ -68,7 +67,7 @@ class GameWindow:
 
     def update_game_status(self, status):
         """ Update the game status on the status bar """
-        self.status_bar["text"] = f"                 {status}"
+        self.status_bar["text"] = f"                                  {status}"
 
     def update_mission(self, idx, outcome):
         print("hmm")
@@ -90,7 +89,7 @@ class GameWindow:
     def start_game(self):
         #if skipping rd 1
         self.round = 1
-        for _ in range(len(MISSIONS)  -1 ): #-1 if skipped rd 1
+        for _ in range(len(MISSIONS)  -1 -1): #-1 if skipped rd 1
             #if skipping rd 1
             self.round += 1
             self.round_label["text"] = f"Round: {self.round}"
